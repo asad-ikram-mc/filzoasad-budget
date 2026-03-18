@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0A1A10"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/><!-- v4.4 -->
+<meta http-equiv="Expires" content="0"/><!-- v5.0 -->
 <!-- v3.1 -->
 <title>Asad &amp; Filza</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
@@ -1495,43 +1495,35 @@ window.selectWho = selectWho;
 async function doLogin(){
   const pass = document.getElementById("login-pass").value.trim();
   const errEl = document.getElementById("login-err");
-  const btn = document.getElementById("login-submit");
-  if(!pass){ errEl.textContent="Enter your password"; return; }
-  errEl.textContent="";
-  btn.disabled=true; btn.textContent="Checking...";
+  const btn   = document.getElementById("login-submit");
+  if(!pass){ errEl.textContent="Enter your password"; errEl.className="login-error err"; return; }
+  errEl.textContent=""; errEl.className="login-error";
+  btn.disabled=true; btn.textContent="Signing in..."; btn.style.opacity="0.7";
 
-  try{
-    // Force reconnect to get fresh data after rules change
-const { goOnline } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");
-goOnline(db);
-const snap = await Promise.race([
-  get(ref(db,"auth/"+loginWho)),
-  new Promise((_,rej)=>setTimeout(()=>rej(new Error("Connection timeout - check internet")),10000))
-]);
-    const stored = snap.val();
-    console.log("DB value:", JSON.stringify(stored), "| Entered:", pass);
-    if(stored === null || stored === undefined){
-      errEl.textContent="DB returned null - wait 5 sec and try again (rules may still be propagating)."; errEl.className="login-error err";
-      btn.disabled=false; btn.textContent="Sign in"; return;
-    }
-    // handle both {password:"x"} object and plain string "x"
-    const correctPass = (typeof stored === "object") ? stored.password : String(stored);
-    if(!correctPass || correctPass.trim() !== pass.trim()){
-      errEl.textContent="Wrong password. Check caps lock and try again."; errEl.className="login-error err";
-      btn.disabled=false; btn.textContent="Sign in";
-      return;
-    }
-    currentUser = loginWho;
-    saveSession(loginWho);
-    document.getElementById("login-pass").value="";
-    document.getElementById("login-page").classList.add("hidden");
-    document.getElementById("logged-in-as").textContent = "\uD83D\uDC4B Logged in as "+loginWho.charAt(0).toUpperCase()+loginWho.slice(1);
-    btn.disabled=false; btn.textContent="Sign in";
-    subscribe();
-  }catch(e){
-    errEl.textContent="Connection error. Check internet and try again."; errEl.className="login-error err";
-    btn.disabled=false; btn.textContent="Sign in";
+  // Passwords stored locally - no Firebase needed for auth
+  // Change these to update passwords (then redeploy)
+  const PASSWORDS = {
+    asad:  "AsadIkram@173",
+    filza: "FilzaBukhari@173"
+  };
+
+  const correct = PASSWORDS[loginWho];
+  if(!correct || pass !== correct){
+    errEl.textContent="Wrong password. Try again.";
+    errEl.className="login-error err";
+    btn.disabled=false; btn.textContent="Sign in"; btn.style.opacity="";
+    return;
   }
+
+  // Login success
+  currentUser = loginWho;
+  saveSession(loginWho);
+  document.getElementById("login-pass").value="";
+  document.getElementById("login-page").classList.add("hidden");
+  document.getElementById("logged-in-as").textContent =
+    "Logged in as " + loginWho.charAt(0).toUpperCase() + loginWho.slice(1);
+  btn.disabled=false; btn.textContent="Sign in"; btn.style.opacity="";
+  subscribe();
 }
 
 document.getElementById("login-submit").addEventListener("click", doLogin);
