@@ -6,8 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="A&amp;F Finance"/>
-<meta name="theme-color" content="#0A1A10"/>
-<!-- v4.1 -->
+<meta name="theme-color" content="#0A1A10"/><!-- v4.2 -->
+<!-- v3.1 -->
 <title>Asad &amp; Filza</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
 <style>
@@ -54,7 +54,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 }
 .login-field input:focus{outline:none;border-color:rgba(200,168,60,0.6);}
 .login-field input::placeholder{color:rgba(200,230,210,0.3);}
-.login-error{font-size:12px;color:#F5A0A0;text-align:center;margin-bottom:8px;min-height:18px;}
+.login-error{font-size:13px;font-weight:600;text-align:center;margin-bottom:10px;min-height:20px;padding:0 4px;color:#F5A0A0;border-radius:10px;transition:background .2s;}
+.login-error.err{background:rgba(220,60,60,0.2);padding:8px 12px;border:1px solid rgba(220,60,60,0.3);}
 .login-btn{
   width:100%;height:48px;border:none;border-radius:14px;
   background:linear-gradient(135deg,#2A5438,#4A7A5A);
@@ -499,7 +500,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="brand-row"><button class="logout-btn" id="logout-btn">&#128274; Out</button>
+    <div class="brand-row"><button class="logout-btn" id="logout-btn" title="Tap: logout | Hold: settings">&#128274; Out</button>
       <div class="brand-line"></div>
       <div class="brand-dot"></div>
       <div class="brand-name">Asad <span class="brand-amp">&amp;</span> Filza</div>
@@ -689,7 +690,8 @@ const MILESTONES = [
 function subscribe() {
   if(!currentUser) return;
   if(unsub) unsub();
-  renderAll(); // render immediately so screen is never blank
+  // Render immediately so screen is never blank
+  renderAll();
   unsub = onValue(ref(db,"af/"+mkey(cy,cm)), snap => {
     state = snap.val()||{};
     if(currentUser) renderAll();
@@ -705,8 +707,8 @@ onValue(ref(db,".info/connected"), snap => {
 /* ── HELPERS ── */
 function toast(msg) {
   const el = document.getElementById("toast");
-  el.textContent = msg; el.classList.remove("hidden");
-  clearTimeout(el._t); el._t = setTimeout(()=>el.classList.add("hidden"), 2200);
+  el.textContent = msg; el.classList.add("show");
+  clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove("show"), 2200);
 }
 function getInc(id) { return state.income?.[id]||{}; }
 function getLogs(id) { return state.expenses?.[id]||{}; }
@@ -1181,15 +1183,15 @@ function openMilestones() {
   renderMsGrid();
   const p=document.getElementById("ms-popup");
   p.style.display="flex";
-  requestAnimationFrame(()=>requestAnimationFrame(()=>p.classList.remove("hidden")));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>p.classList.add("show")));
 }
 function closeMilestones() {
   const p=document.getElementById("ms-popup");
-  p.classList.add("hidden");
+  p.classList.remove("show");
   setTimeout(()=>{p.style.display="none";},380);
 }
 function closeMsDetail() {
-  document.getElementById("ms-detail").classList.add("hidden");
+  document.getElementById("ms-detail").classList.remove("show");
 }
 
 /* expose to window so onclick="" attributes work inside module scope */
@@ -1265,7 +1267,7 @@ function showMsDetail(ms,savAmt,canAfford,prog,monthsAway,monthlyNet) {
       ? "<strong style='color:var(--grn)'>You have "+cur+Math.round(surplus).toLocaleString()+" more than needed \u2713</strong>"
       : "Still needed: <strong>"+cur+Math.round(shortfall).toLocaleString()+"</strong>"+(monthlyNet>0&&monthsAway?"<br/>At current rate: <strong>~"+monthsAway+" months</strong>":"")
     )+"<br/>Progress: <strong>"+prog+"%</strong>";
-  document.getElementById("ms-detail").classList.remove("hidden");
+  document.getElementById("ms-detail").classList.add("show");
 }
 
 
@@ -1278,16 +1280,16 @@ function pushUndo(label, undoFn) {
   const bar = document.getElementById("undo-bar");
   const txt = document.getElementById("undo-txt");
   txt.textContent = label;
-  bar.classList.remove("hidden");
+  bar.classList.add("show");
   clearTimeout(undoTimer);
-  undoTimer = setTimeout(()=>{ bar.classList.add("hidden"); undoStack=[];}, 5000);
+  undoTimer = setTimeout(()=>{ bar.classList.remove("show"); undoStack=[];}, 5000);
 }
 
 document.getElementById("undo-btn").addEventListener("click", async()=>{
   if(!undoStack.length) return;
   const action = undoStack.pop();
   await action.fn();
-  document.getElementById("undo-bar").classList.add("hidden");
+  document.getElementById("undo-bar").classList.remove("show");
   clearTimeout(undoTimer);
   undoStack=[];
   toast("Undone \u2713");
@@ -1300,7 +1302,7 @@ function openEditModal(catId, key, name, amt) {
   editCtx = {catId, key};
   document.getElementById("edit-desc").value = name;
   document.getElementById("edit-amt").value = amt;
-  document.getElementById("edit-modal-bg").classList.remove("hidden");
+  document.getElementById("edit-modal-bg").classList.add("show");
 }
 
 document.getElementById("edit-save-btn").addEventListener("click", async()=>{
@@ -1310,7 +1312,7 @@ document.getElementById("edit-save-btn").addEventListener("click", async()=>{
   if(amt<=0){ toast("Enter a valid amount"); return; }
   await update(ref(db,dbp("expenses",editCtx.catId,editCtx.key)),{name,amt});
   logActivity("edit","Edited expense: "+name, editCtx.catId, amt, currentUser);
-  document.getElementById("edit-modal-bg").classList.add("hidden");
+  document.getElementById("edit-modal-bg").classList.remove("show");
   toast("Updated \u2713");
   editCtx=null;
 });
@@ -1326,18 +1328,18 @@ document.getElementById("edit-del-btn").addEventListener("click", async()=>{
     });
   }
   await remove(ref(db,dbp("expenses",editCtx.catId,editCtx.key)));
-  document.getElementById("edit-modal-bg").classList.add("hidden");
+  document.getElementById("edit-modal-bg").classList.remove("show");
   toast("Deleted");
   editCtx=null;
 });
 
 document.getElementById("edit-cancel-btn").addEventListener("click", ()=>{
-  document.getElementById("edit-modal-bg").classList.add("hidden");
+  document.getElementById("edit-modal-bg").classList.remove("show");
   editCtx=null;
 });
 
 document.getElementById("edit-modal-bg").addEventListener("click", function(e){
-  if(e.target===this){ this.classList.add("hidden"); editCtx=null; }
+  if(e.target===this){ this.classList.remove("show"); editCtx=null; }
 });
 
 /* ── RESET SYSTEM ── */
@@ -1347,20 +1349,20 @@ function openConfirm(title, msg, cb){
   document.getElementById("confirm-title").textContent = title;
   document.getElementById("confirm-msg").textContent = msg;
   confirmCb = cb;
-  document.getElementById("confirm-bg").classList.remove("hidden");
+  document.getElementById("confirm-bg").classList.add("show");
 }
 
 document.getElementById("confirm-yes").addEventListener("click", async()=>{
-  document.getElementById("confirm-bg").classList.add("hidden");
+  document.getElementById("confirm-bg").classList.remove("show");
   if(confirmCb){ await confirmCb(); confirmCb=null; }
 });
 document.getElementById("confirm-no").addEventListener("click", ()=>{
-  document.getElementById("confirm-bg").classList.add("hidden");
+  document.getElementById("confirm-bg").classList.remove("show");
   confirmCb=null;
 });
 
 /* ── RESET BUTTON (gear icon) ── */
-document.getElementById("reset-btn").addEventListener("click", ()=>{
+(document.getElementById("reset-btn")||document.createElement("div")).addEventListener("click", ()=>{
   // Show a small action sheet via confirm
   const choice = window._resetChoice || null;
   // Use a chained confirm approach — show options
@@ -1384,12 +1386,12 @@ function showResetSheet(){
       <button id="opt-cancel" style="width:100%;height:38px;border:none;border-radius:11px;background:none;color:var(--sf);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;">Cancel</button>
     </div>
   `;
-  bg.classList.remove("hidden");
+  bg.classList.add("show");
 
-  document.getElementById("opt-cancel").onclick=()=>{ bg.classList.add("hidden"); restoreConfirmCard(); };
+  document.getElementById("opt-cancel").onclick=()=>{ bg.classList.remove("show"); restoreConfirmCard(); };
 
   document.getElementById("opt-expenses").onclick=()=>{
-    bg.classList.add("hidden"); restoreConfirmCard();
+    bg.classList.remove("show"); restoreConfirmCard();
     setTimeout(()=>{
       openConfirm("Clear all expenses?",
         "Deletes all expense entries for "+MONTHS[cm]+" "+cy+". Income records are kept.",
@@ -1399,7 +1401,7 @@ function showResetSheet(){
   };
 
   document.getElementById("opt-income").onclick=()=>{
-    bg.classList.add("hidden"); restoreConfirmCard();
+    bg.classList.remove("show"); restoreConfirmCard();
     setTimeout(()=>{
       openConfirm("Reset income status?",
         "Marks all income sources as Pending for "+MONTHS[cm]+" "+cy+". Expenses are kept.",
@@ -1414,7 +1416,7 @@ function showResetSheet(){
   };
 
   document.getElementById("opt-all").onclick=()=>{
-    bg.classList.add("hidden"); restoreConfirmCard();
+    bg.classList.remove("show"); restoreConfirmCard();
     setTimeout(()=>{
       openConfirm("Reset entire month?",
         "Deletes ALL expenses and resets ALL income for "+MONTHS[cm]+" "+cy+". Savings are kept. Cannot be undone.",
@@ -1437,11 +1439,11 @@ function restoreConfirmCard(){
   `;
   // rewire
   document.getElementById("confirm-yes").addEventListener("click", async()=>{
-    document.getElementById("confirm-bg").classList.add("hidden");
+    document.getElementById("confirm-bg").classList.remove("show");
     if(confirmCb){ await confirmCb(); confirmCb=null; }
   });
   document.getElementById("confirm-no").addEventListener("click", ()=>{
-    document.getElementById("confirm-bg").classList.add("hidden");
+    document.getElementById("confirm-bg").classList.remove("show");
     confirmCb=null;
   });
 }
@@ -1487,16 +1489,18 @@ window.selectWho = selectWho;
 async function doLogin(){
   const pass = document.getElementById("login-pass").value.trim();
   const errEl = document.getElementById("login-err");
-  const btn   = document.getElementById("login-submit");
+  const btn = document.getElementById("login-submit");
   if(!pass){ errEl.textContent="Enter your password"; return; }
   errEl.textContent="";
   btn.disabled=true; btn.textContent="Checking...";
+
   try{
     const snap = await get(ref(db,"auth/"+loginWho));
     const stored = snap.val();
-    const correctPass = (stored && typeof stored==="object") ? stored.password : stored;
-    if(!correctPass || String(correctPass) !== String(pass)){
-      errEl.textContent="Wrong password. Try again.";
+    // handle both {password:"x"} object and plain string "x"
+    const correctPass = (stored && typeof stored === "object") ? stored.password : stored;
+    if(!correctPass || String(correctPass).trim() !== String(pass).trim()){
+      errEl.textContent = "Wrong password. Try again."; errEl.className="login-error err";
       btn.disabled=false; btn.textContent="Sign in";
       return;
     }
@@ -1504,27 +1508,38 @@ async function doLogin(){
     saveSession(loginWho);
     document.getElementById("login-pass").value="";
     document.getElementById("login-page").classList.add("hidden");
-    document.getElementById("logged-in-as").textContent=
-      "\u{1F44B} Logged in as "+loginWho.charAt(0).toUpperCase()+loginWho.slice(1);
+    document.getElementById("logged-in-as").textContent = "\uD83D\uDC4B Logged in as "+loginWho.charAt(0).toUpperCase()+loginWho.slice(1);
     btn.disabled=false; btn.textContent="Sign in";
     subscribe();
   }catch(e){
-    console.error("Login error:",e);
-    errEl.textContent="Connection error. Check internet and try again.";
+    errEl.textContent="Connection error. Check internet and try again."; errEl.className="login-error err";
     btn.disabled=false; btn.textContent="Sign in";
   }
 }
 
 document.getElementById("login-submit").addEventListener("click", doLogin);
 document.getElementById("login-pass").addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); });
+document.getElementById("login-pass").addEventListener("input", ()=>{ const el=document.getElementById("login-err"); el.textContent=""; el.className="login-error"; });
 
-document.getElementById("logout-btn").addEventListener("click", ()=>{
-  clearSession(); currentUser=null;
-  if(unsub){ unsub(); unsub=null; }
-  state={};
-  document.getElementById("logged-in-as").textContent="";
-  document.getElementById("login-page").classList.remove("hidden");
-});
+(function(){
+  const btn = document.getElementById("logout-btn");
+  if(!btn) return;
+  let pressTimer = null;
+  // Short tap = logout, long press (600ms) = settings/reset sheet
+  btn.addEventListener("mousedown", ()=>{ pressTimer=setTimeout(()=>{ pressTimer=null; showResetSheet(); },600); });
+  btn.addEventListener("touchstart", (e)=>{ e.preventDefault(); pressTimer=setTimeout(()=>{ pressTimer=null; showResetSheet(); },600); },{passive:false});
+  btn.addEventListener("mouseup", ()=>{ if(pressTimer){ clearTimeout(pressTimer); pressTimer=null; } });
+  btn.addEventListener("touchend", ()=>{ if(pressTimer){ clearTimeout(pressTimer); pressTimer=null; } });
+  btn.addEventListener("click", ()=>{
+    if(pressTimer===null) return; // was a long press, already handled
+    clearTimeout(pressTimer); pressTimer=null;
+    clearSession(); currentUser=null;
+    if(unsub){ unsub(); unsub=null; }
+    state={};
+    document.getElementById("logged-in-as").textContent="";
+    document.getElementById("login-page").classList.remove("hidden");
+  });
+})();
 
 /* ─── BOOT: check session ─── */
 (function checkSession(){
