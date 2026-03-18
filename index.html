@@ -27,7 +27,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 
 /* PHOTO HERO */
 .hero{position:relative;overflow:hidden;height:300px;}
-.hero img{width:100%;height:100%;object-fit:cover;object-position:center 30%;display:block;}
+.hero img{width:100%;height:100%;object-fit:cover;object-position:center 52%;display:block;}
 .hero-overlay{
   position:absolute;inset:0;
   background:linear-gradient(to bottom,rgba(5,14,7,0.18) 0%,rgba(5,14,7,0.05) 35%,rgba(5,14,7,0.55) 72%,rgba(5,14,7,0.92) 100%);
@@ -354,13 +354,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 <div id="split-sum-row"></div>
 
 <!-- FLOATING DREAM BUTTON -->
-<button class="ms-fab" onclick="openMilestones()">
+<button class="ms-fab" id="ms-fab">
   <span class="ms-fab-icon">&#127775;</span>
   <span class="ms-fab-lbl">Dreams</span>
 </button>
 
 <!-- MILESTONES POPUP -->
-<div class="ms-popup" id="ms-popup" onclick="if(event.target===this)closeMilestones()">
+<div class="ms-popup" id="ms-popup">
   <div class="ms-sheet">
     <div class="ms-handle"></div>
     <div class="ms-pop-hdr">
@@ -368,7 +368,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
         <div class="ms-pop-title">Dream Milestones &#10024;</div>
         <div class="ms-pop-sub">Tap a dream to see how close you are</div>
       </div>
-      <button class="ms-pop-close" onclick="closeMilestones()">&#10005;</button>
+      <button class="ms-pop-close">&#10005;</button>
     </div>
     <div class="ms-pop-body">
       <div class="ms-grid" id="ms-grid"></div>
@@ -377,7 +377,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 </div>
 
 <!-- MILESTONE DETAIL -->
-<div class="ms-detail" id="ms-detail" onclick="if(event.target===this)closeMsDetail()">
+<div class="ms-detail" id="ms-detail">
   <div class="ms-detail-card">
     <div class="ms-detail-bar" id="ms-d-bar"></div>
     <div class="ms-detail-ico" id="ms-d-ico"></div>
@@ -388,7 +388,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
       <div class="ms-breakdown" id="ms-d-brk"></div>
     </div>
     <div class="ms-desc" id="ms-d-desc"></div>
-    <button class="ms-close-btn" onclick="closeMsDetail()">Got it &#128077;</button>
+    <button class="ms-close-btn">Got it &#128077;</button>
   </div>
 </div>
 
@@ -966,6 +966,11 @@ function closeMsDetail() {
   document.getElementById("ms-detail").classList.remove("show");
 }
 
+/* expose to window so onclick="" attributes work inside module scope */
+window.openMilestones  = openMilestones;
+window.closeMilestones = closeMilestones;
+window.closeMsDetail   = closeMsDetail;
+
 function renderMsGrid() {
   const grid=document.getElementById("ms-grid");
   if(!grid) return;
@@ -1061,6 +1066,13 @@ document.querySelectorAll(".tab").forEach(tab=>{
 
 document.getElementById("prev").onclick=()=>{cm--;if(cm<0){cm=11;cy--;}openCats.clear();subscribe();};
 document.getElementById("next").onclick=()=>{cm++;if(cm>11){cm=0;cy++;}openCats.clear();subscribe();};
+
+/* wire up milestone buttons inside module so no scope issues */
+document.getElementById("ms-fab").addEventListener("click", openMilestones);
+document.getElementById("ms-popup").addEventListener("click", function(e){ if(e.target===this) closeMilestones(); });
+document.getElementById("ms-detail").addEventListener("click", function(e){ if(e.target===this) closeMsDetail(); });
+document.querySelector(".ms-pop-close").addEventListener("click", closeMilestones);
+document.querySelector(".ms-close-btn").addEventListener("click", closeMsDetail);
 
 subscribe();
 </script>
