@@ -1530,7 +1530,7 @@ document.getElementById("logout-btn").addEventListener("click", ()=>{
   if(s && s.who){
     currentUser = s.who;
     document.getElementById("logged-in-as").textContent = "\uD83D\uDC4B Logged in as "+s.who.charAt(0).toUpperCase()+s.who.slice(1);
-    // don't show login page — subscribe() at bottom handles it
+    subscribe(); // ← call here directly so renderAll fires once Firebase responds
   } else {
     document.getElementById("login-page").classList.add("show");
   }
@@ -1680,8 +1680,9 @@ document.getElementById("ms-detail").addEventListener("click", function(e){ if(e
 document.querySelector(".ms-pop-close").addEventListener("click", closeMilestones);
 document.querySelector(".ms-close-btn").addEventListener("click", closeMsDetail);
 
-// Only subscribe if session was found (login check happens above)
-if(currentUser) subscribe();
+// subscribe() is called inside checkSession() above if session exists,
+// or inside doLogin() after successful login
+
 </script>
 </body>
 </html>
