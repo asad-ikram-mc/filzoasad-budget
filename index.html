@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0A1A10"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/><!-- v5.2 -->
+<meta http-equiv="Expires" content="0"/><!-- v5.3 -->
 <!-- v3.1 -->
 <title>Asad &amp; Filza</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
@@ -120,14 +120,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 .act-load-more:active{background:var(--panel);}
 
 /* logout btn in topbar */
-.logout-btn{
-  position:absolute;left:0;top:50%;transform:translateY(-50%);
-  background:none;border:none;cursor:pointer;
-  font-size:13px;padding:4px 6px;color:rgba(200,168,60,0.55);
-  font-family:'DM Sans',sans-serif;font-weight:600;
-  display:flex;align-items:center;gap:3px;
-}
+.logout-btn{position:absolute;left:0;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:12px;padding:4px 6px;color:rgba(200,168,60,0.55);font-family:'DM Sans',sans-serif;font-weight:600;display:flex;align-items:center;gap:3px;}
 .logout-btn:active{color:rgba(200,168,60,0.9);}
+.settings-btn{position:absolute;right:24px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:15px;padding:4px 5px;color:rgba(200,168,60,0.55);line-height:1;}
+.settings-btn:active{color:rgba(200,168,60,0.9);}
 .logged-in-as{font-size:9px;color:rgba(200,230,210,0.38);text-align:center;margin-bottom:.35rem;letter-spacing:.5px;}
 /* PHOTO HERO */
 .hero{position:relative;overflow:hidden;height:300px;}
@@ -192,9 +188,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 .net-val{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;line-height:1;}
 .net-val.neg{color:#F5A0A0;}
 .net-sub{font-size:10px;opacity:.55;margin-top:5px;}
-.net-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:rgba(255,255,255,.12);border-radius:10px;overflow:hidden;margin-top:12px;}
-.net-cell{background:rgba(0,0,0,.2);padding:8px 4px;text-align:center;}
-.net-cell-lbl{font-size:9px;opacity:.55;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px;}
+.net-grid{display:flex;gap:0;margin-top:12px;border-radius:10px;overflow:hidden;}
+.net-cell{flex:1;background:rgba(0,0,0,.2);padding:8px 4px;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px;border-right:1px solid rgba(255,255,255,.08);}
+.net-cell:last-child{border-right:none;}
+.net-cell-lbl{font-size:9px;opacity:.5;letter-spacing:.3px;}
+.net-cell-lbl::after{content:": ";}
 .net-cell-val{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;}
 
 /* ALERT */
@@ -321,9 +319,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 .mini-pb-f.ok{background:var(--grn);}
 .mini-pb-f.wn{background:var(--amber);}
 .mini-pb-f.ov{background:var(--rose);}
-.split-sum{display:flex;gap:5px;padding:.5rem .45rem 0;}
-.split-sum-card{flex:1;background:var(--cw);border:1px solid var(--br);border-radius:12px;padding:9px 7px;text-align:center;box-shadow:0 1px 6px var(--sh);}
-.split-sum-lbl{font-size:9px;color:var(--sf);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;}
+.split-sum{display:flex;gap:0;padding:.5rem .45rem 0;}
+.split-sum-card{flex:1;background:var(--cw);padding:9px 6px;text-align:center;border-top:1px solid var(--br);border-bottom:1px solid var(--br);border-right:1px solid var(--br);display:flex;align-items:center;justify-content:center;gap:5px;}
+.split-sum-card:first-child{border-left:1px solid var(--br);border-radius:12px 0 0 12px;}
+.split-sum-card:last-child{border-radius:0 12px 12px 0;}
+.split-sum-lbl{font-size:10px;color:var(--sf);letter-spacing:.3px;}
+.split-sum-lbl::after{content:": ";}
 .split-sum-val{font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:600;color:var(--dk);}
 .split-sum-val.ok{color:var(--grn);}
 .split-sum-val.ov{color:var(--rose);}
@@ -465,8 +466,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 .log-edit{background:none;border:none;cursor:pointer;color:var(--sf);font-size:11px;padding:0 3px;font-family:'DM Sans',sans-serif;}
 .log-edit:active{color:var(--grn);}
 /* TOAST */
-.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(8px);background:var(--dk);color:#EDF8EF;padding:9px 20px;border-radius:22px;font-size:12px;font-weight:500;opacity:0;pointer-events:none;z-index:999;white-space:nowrap;transition:opacity .25s,transform .25s;box-shadow:0 6px 20px rgba(0,0,0,.3);}
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(12px);background:var(--dk);color:#EDF8EF;padding:11px 22px;border-radius:26px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;z-index:999;white-space:nowrap;transition:opacity .3s,transform .3s cubic-bezier(.2,.85,.3,1);box-shadow:0 8px 28px rgba(0,0,0,.4);display:flex;align-items:center;gap:8px;max-width:90vw;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.t-ok{background:var(--grn);}
+.toast.t-del{background:var(--rose);}
+.toast.t-warn{background:var(--amber);}
+.toast.t-info{background:var(--asad);}
 </style>
 </head>
 <body>
@@ -506,7 +511,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="brand-row"><button class="logout-btn" id="logout-btn" title="Tap: logout | Hold: settings">&#128274; Out</button>
+    <div class="brand-row"><button class="logout-btn" id="logout-btn">&#128274; Out</button><button class="settings-btn" id="settings-btn">&#9881;&#65039;</button>
       <div class="brand-line"></div>
       <div class="brand-dot"></div>
       <div class="brand-name">Asad <span class="brand-amp">&amp;</span> Filza</div>
@@ -718,10 +723,15 @@ onValue(ref(db,".info/connected"), snap => {
 });
 
 /* ── HELPERS ── */
-function toast(msg) {
+function toast(msg, type) {
   const el = document.getElementById("toast");
-  el.textContent = msg; el.classList.add("show");
-  clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove("show"), 2200);
+  const t = type || (msg.toLowerCase().includes("delet")||msg.toLowerCase().includes("remov") ? "del" :
+    msg.toLowerCase().includes("reset")||msg.toLowerCase().includes("clear") ? "warn" : "ok");
+  const icons = {"ok":"\u2713","del":"\uD83D\uDDD1","warn":"\u26A0","info":"\u2139"};
+  el.className = "toast t-"+t;
+  el.innerHTML = "<span>"+(icons[t]||"\u2713")+"</span><span>"+msg+"</span>";
+  el.classList.add("show");
+  clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove("show"), 2600);
 }
 function getInc(id) { return state.income?.[id]||{}; }
 function getLogs(id) { return state.expenses?.[id]||{}; }
@@ -1559,25 +1569,14 @@ document.getElementById("toggle-pass").addEventListener("click", ()=>{
   }
 });
 
-(function(){
-  const btn = document.getElementById("logout-btn");
-  if(!btn) return;
-  let pressTimer = null;
-  // Short tap = logout, long press (600ms) = settings/reset sheet
-  btn.addEventListener("mousedown", ()=>{ pressTimer=setTimeout(()=>{ pressTimer=null; showResetSheet(); },600); });
-  btn.addEventListener("touchstart", (e)=>{ e.preventDefault(); pressTimer=setTimeout(()=>{ pressTimer=null; showResetSheet(); },600); },{passive:false});
-  btn.addEventListener("mouseup", ()=>{ if(pressTimer){ clearTimeout(pressTimer); pressTimer=null; } });
-  btn.addEventListener("touchend", ()=>{ if(pressTimer){ clearTimeout(pressTimer); pressTimer=null; } });
-  btn.addEventListener("click", ()=>{
-    if(pressTimer===null) return; // was a long press, already handled
-    clearTimeout(pressTimer); pressTimer=null;
-    clearSession(); currentUser=null;
-    if(unsub){ unsub(); unsub=null; }
-    state={};
-    document.getElementById("logged-in-as").textContent="";
-    document.getElementById("login-page").classList.remove("hidden");
-  });
-})();
+document.getElementById("logout-btn").addEventListener("click",()=>{
+  clearSession(); currentUser=null;
+  if(unsub){unsub();unsub=null;} state={};
+  document.getElementById("logged-in-as").textContent="";
+  document.getElementById("login-page").classList.remove("hidden");
+  toast("Logged out","info");
+});
+(function(){const sb=document.getElementById("settings-btn"); if(sb) sb.addEventListener("click",()=>showResetSheet());})();
 
 /* ─── BOOT: check session ─── */
 (function checkSession(){
