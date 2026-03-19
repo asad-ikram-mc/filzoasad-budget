@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0A1A10"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/><!-- v5.0 -->
+<meta http-equiv="Expires" content="0"/><!-- v5.1 -->
 <!-- v3.1 -->
 <title>Asad &amp; Filza</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
@@ -682,14 +682,21 @@ const ACCOUNTS = [
 ];
 
 const MILESTONES = [
-  {id:"m1",icon:"\uD83C\uDFE0",name:"Karachi Flat Deposit",  cost:500000, cur:"PKR",desc:"A place to call home \u2014 your own space in Pakistan",savKey:"pak_sav"},
-  {id:"m2",icon:"\uD83D\uDECB",name:"Living Room Setup",     cost:150000, cur:"PKR",desc:"Cosy evenings on your own sofa \u2014 heart of home",savKey:"pak_sav"},
-  {id:"m3",icon:"\u2708\uFE0F",name:"Europe Holiday",        cost:300000, cur:"PKR",desc:"Two weeks exploring together \u2014 you've earned it",savKey:"pak_sav"},
-  {id:"m4",icon:"\uD83D\uDC8D",name:"Anniversary Treat",     cost:50000,  cur:"PKR",desc:"Celebrate what you've built \u2014 dinner, a night to remember",savKey:"pak_sav"},
-  {id:"m5",icon:"\uD83D\uDE97",name:"New Car",               cost:3000000,cur:"PKR",desc:"Upgrade the commute \u2014 a family car for the next chapter",savKey:"pak_sav"},
-  {id:"m6",icon:"\uD83D\uDC76",name:"Baby Fund Starter",     cost:500000, cur:"PKR",desc:"Getting ready for the biggest adventure \u2014 safety cushion",savKey:"pak_sav"},
-  {id:"m7",icon:"\uD83C\uDF93",name:"Course or Upskill",     cost:200000, cur:"PKR",desc:"Invest in yourselves \u2014 a certification to level up",savKey:"pak_sav"},
-  {id:"m8",icon:"\uD83C\uDF0D",name:"UK Visit Fund",         cost:2500,   cur:"GBP",desc:"Coming back to London \u2014 your favourite city",savKey:"lloyds"},
+  {id:"m1", icon:"🚙", name:"Jaecoo J5 (Dream Car)",  cost:5000000, cur:"PKR",
+   desc:"The Jaecoo J5 SUV — bold design, panoramic roof, premium interior. Your family car for the next chapter.",
+   savKey:"pak_sav", img:"https://www.omodajaecoo.com.my/assets/img/j5/j5-exterior.jpg"},
+  {id:"m2", icon:"🛋", name:"Living Room Setup",      cost:500000,  cur:"PKR",
+   desc:"Cosy evenings on your own sofa — the heart of a real home together.",
+   savKey:"pak_sav"},
+  {id:"m3", icon:"✈️", name:"Europe Trip",   cost:2500000, cur:"PKR",
+   desc:"Two weeks exploring Europe together — you’ve worked hard for this.",
+   savKey:"pak_sav"},
+  {id:"m4", icon:"👶", name:"Baby Fund",              cost:5000000, cur:"PKR",
+   desc:"Getting ready for the biggest adventure — a safety cushion for your growing family.",
+   savKey:"pak_sav"},
+  {id:"m5", icon:"📋", name:"Visa Approval Fund",     cost:500000,  cur:"PKR",
+   desc:"PKR 5 lakh across both Asad & Filza savings accounts — ready for visa applications.",
+   savKey:"pak_sav"},
 ];
 
 /* ── FIREBASE ── */
@@ -1229,6 +1236,15 @@ function renderMsGrid() {
     tb.append(tbf);
 
     const ico=document.createElement("span"); ico.className="ms-card-ico"; ico.textContent=ms.icon;
+    // If milestone has an image URL, show it instead of emoji
+    if(ms.img){
+      const imgEl=document.createElement("img");
+      imgEl.src=ms.img; imgEl.alt=ms.name;
+      imgEl.style.cssText="width:100%;height:60px;object-fit:cover;border-radius:8px;margin-bottom:5px;display:block;";
+      imgEl.onerror=()=>{ imgEl.style.display="none"; ico.style.display="block"; };
+      ico.style.display="none";
+      card.append(imgEl);
+    }
     const nm=document.createElement("div"); nm.className="ms-card-name"; nm.textContent=ms.name;
     const cst=document.createElement("div"); cst.className="ms-card-cost";
     cst.textContent=(ms.cur==="GBP"?fmtG(ms.cost):"PKR "+Math.round(ms.cost).toLocaleString());
