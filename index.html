@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0A1A10"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/><!-- v5.3 -->
+<meta http-equiv="Expires" content="0"/><!-- v5.4 -->
 <!-- v3.1 -->
 <title>Asad &amp; Filza</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
@@ -652,15 +652,15 @@ const dbp  = (...p) => "af/"+mkey(cy,cm)+"/"+p.join("/");
 
 const INCOME = [
   {id:"filza_sal",who:"filza",name:"Filza \u2014 Salary",    src:"Monthly",             exp:150000,cur:"PKR",note:"Regular monthly salary"},
-  {id:"asad_mc",  who:"asad", name:"Asad \u2014 M&C Saatchi",src:"M&C Saatchi Fluency", exp:950000,cur:"PKR",note:"Arrives Pakistan account"},
+  {id:"asad_mc",  who:"asad", name:"Asad \u2014 M&C Saatchi",src:"M&C Saatchi Fluency", exp:600000,cur:"PKR",note:"Arrives Pakistan account"},
   {id:"asad_free",who:"asad", name:"Asad \u2014 Freelance",  src:"Various clients",      exp:390000,cur:"PKR",note:"Arrives Pakistan account"},
   {id:"asad_fix", who:"asad", name:"Asad \u2014 Fix.com",    src:"Fix.com UK (Lloyds)",  exp:2900,  cur:"GBP",note:"Stays in Lloyds UK \u2014 NOT in Pakistan pool"},
 ];
 
 const EXPENSES = [
   {id:"petrol",  who:"asad", name:"Petrol",       icon:"\u26FD",bg:"#E6F2EA",budget:50000,acct:"ABL"},
-  {id:"shopping",who:"asad", name:"Shopping",     icon:"\uD83D\uDECD",bg:"#EEF0F8",budget:50000,acct:"ABL"},
-  {id:"dining",  who:"asad", name:"Dining Out",   icon:"\uD83C\uDF7D",bg:"#F5EDEA",budget:50000,acct:"ABL"},
+  {id:"shopping",who:"asad", name:"Shopping",     icon:"\uD83D\uDECD",bg:"#EEF0F8",budget:30000,acct:"ABL"},
+  {id:"dining",  who:"asad", name:"Dining Out",   icon:"\uD83C\uDF7D",bg:"#F5EDEA",budget:30000,acct:"ABL"},
   {id:"daily_a", who:"asad", name:"Daily Expense",icon:"\uD83D\uDCC5",bg:"#EDF4EE",budget:15000,acct:"HBL"},
   {id:"ammi",    who:"asad", name:"Ammi",         icon:"\uD83D\uDC9D",bg:"#F8EEF4",budget:50000,acct:"HBL"},
   {id:"internet",who:"asad", name:"Internet Bill",icon:"\uD83C\uDF10",bg:"#E8F4F2",budget:14000,acct:"HBL"},
@@ -669,14 +669,13 @@ const EXPENSES = [
   {id:"mama",    who:"filza",name:"Mama",         icon:"\uD83E\uDD32",bg:"#EAF0FA",budget:50000,acct:"HBL"},
   {id:"toilet",  who:"filza",name:"Toiletries",   icon:"\uD83E\uDDF4",bg:"#F5F0E8",budget:15000,acct:"SCB"},
   {id:"daily_f", who:"filza",name:"Daily Expense",icon:"\uD83D\uDCC5",bg:"#EDF4EE",budget:15000,acct:"HBL"},
-  {id:"misc",    who:"filza",name:"Miscellaneous",icon:"\uD83D\uDCE6",bg:"#F0EEE8",budget:30000,acct:"HBL"},
+  {id:"misc",    who:"filza",name:"Miscellaneous",icon:"\uD83D\uDCE6",bg:"#F0EEE8",budget:20000,acct:"HBL"},
   {id:"phone_f", who:"filza",name:"Phone (Filza)",icon:"\uD83D\uDCF1",bg:"#EAF5E8",budget:5000, acct:"HBL"},
 ];
 
 const SAVINGS = [
-  {id:"lloyds", name:"Lloyds Bank (UK)",   cur:"GBP",note:"Fix.com salary \u2014 save monthly in UK"},
-  {id:"pak_sav",name:"Pakistan Savings",   cur:"PKR",note:"Long-term savings account"},
-  {id:"mutual", name:"Mutual Fund",        cur:"PKR",note:"Investment portfolio"},
+  {id:"lloyds", name:"Lloyds Bank (UK)",   cur:"GBP",note:"Fix.com — all £2,900 stays in UK (Lloyds)"},
+  {id:"pak_sav",name:"Pakistan Savings",   cur:"PKR",note:"PKR 400,000/month target — Jaecoo, Baby Fund, Visa"},
 ];
 
 const ACCOUNTS = [
