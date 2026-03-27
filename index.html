@@ -78,7 +78,59 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 .login-who-btn.sel{border-color:rgba(200,168,60,0.7);background:rgba(200,168,60,0.12);color:rgba(230,210,140,0.9);}
 .login-session{font-size:10px;color:rgba(200,230,210,0.35);text-align:center;margin-top:10px;}
 
-/* ══ SECURED TAB ══ */
+/* ══ SAVINGS TAB ══ */
+.sav-tab-hero{background:linear-gradient(135deg,#0A2010,#1A4828);border-radius:18px;padding:18px 16px 14px;margin-bottom:12px;position:relative;overflow:hidden;}
+.sav-tab-hero::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,rgba(200,168,60,0.12),transparent 60%);pointer-events:none;}
+.sav-hero-title{font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:500;color:rgba(200,230,210,0.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;}
+.sav-hero-total{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:600;color:#EDF8EF;line-height:1;margin-bottom:4px;}
+.sav-hero-sub{font-size:10px;color:rgba(200,230,210,0.4);margin-bottom:14px;}
+.sav-hero-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+.sav-hero-cell{background:rgba(0,0,0,0.25);border-radius:10px;padding:8px 10px;text-align:center;}
+.sav-hero-cell-lbl{font-size:9px;color:rgba(200,230,210,0.4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.sav-hero-cell-val{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;color:#EDF8EF;}
+.sav-hero-cell-val.gbp{color:rgba(200,168,60,0.9);}
+
+.sav-alloc-section{margin-bottom:14px;}
+.sav-alloc-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--sf);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.sav-alloc-card{background:var(--cw);border:1px solid var(--br);border-radius:14px;overflow:hidden;box-shadow:0 1px 6px var(--sh);margin-bottom:8px;}
+.sav-alloc-hdr{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--br);}
+.sav-alloc-name{font-size:13px;font-weight:600;color:var(--dk);display:flex;align-items:center;gap:7px;}
+.sav-alloc-name-icon{font-size:15px;}
+.sav-alloc-badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;}
+.sav-alloc-badge.uk{background:#E8F0F8;color:#1A4A8A;}
+.sav-alloc-badge.asad{background:var(--asadl);color:var(--asad);}
+.sav-alloc-badge.filza{background:var(--filzal);color:var(--filza);}
+.sav-alloc-body{padding:10px 14px;}
+.sav-alloc-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.sav-alloc-row:last-child{margin-bottom:0;}
+.sav-alloc-lbl{font-size:12px;color:var(--md);}
+.sav-alloc-val{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;color:var(--dk);}
+.sav-alloc-input-row{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--br);}
+.sav-alloc-inp-lbl{font-size:10px;color:var(--sf);font-weight:600;flex-shrink:0;}
+.sav-alloc-inp{flex:1;height:34px;border:1px solid var(--br);border-radius:9px;padding:0 10px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--panel);color:var(--dk);}
+.sav-alloc-inp:focus{outline:none;border-color:var(--grnm);}
+.sav-alloc-btn{height:34px;padding:0 12px;border-radius:9px;border:none;background:var(--grn);color:#EDF8EF;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0;}
+.sav-alloc-btn:active{opacity:.85;}
+
+.sav-graph-section{margin-bottom:14px;}
+.sav-graph-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--sf);margin-bottom:8px;}
+.sav-graph-wrap{background:var(--cw);border:1px solid var(--br);border-radius:16px;padding:14px;box-shadow:0 1px 6px var(--sh);}
+.sav-graph-legend{display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap;}
+.sav-graph-leg-item{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:var(--sf);}
+.sav-graph-leg-dot{width:8px;height:8px;border-radius:50%;}
+.sav-graph-canvas-wrap{position:relative;width:100%;}
+#sav-svg{width:100%;display:block;overflow:visible;}
+.sav-no-data{text-align:center;padding:2rem;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;color:var(--sf);}
+
+.sav-month-table{margin-top:12px;}
+.sav-month-row-hdr{display:grid;grid-template-columns:80px 1fr 1fr 1fr;gap:4px;padding:4px 2px;border-bottom:1px solid var(--br);margin-bottom:4px;}
+.sav-month-row-hdr span{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--sf);}
+.sav-month-row{display:grid;grid-template-columns:80px 1fr 1fr 1fr;gap:4px;padding:6px 2px;border-bottom:1px solid rgba(196,216,198,0.4);}
+.sav-month-row:last-child{border-bottom:none;}
+.sav-month-row span{font-size:11px;color:var(--dk);}
+.sav-month-row span:first-child{color:var(--sf);font-weight:600;}
+.sav-month-row span.pos{color:var(--grn);font-weight:600;}
+.sav-month-row span.neg{color:var(--rose);font-weight:600;}
 .sec-header{background:linear-gradient(135deg,var(--grn),var(--grnm));border-radius:16px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
 .sec-header-left{}
 .sec-header-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;color:#EDF8EF;margin-bottom:2px;}
@@ -595,6 +647,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
       <div class="tab"     data-view="split">&#9638; Split</div>
       <div class="tab"     data-view="activity">&#128336; Activity</div>
       <div class="tab"     data-view="secured">&#128274; Secured</div>
+      <div class="tab"     data-view="savings">&#128200; Savings</div>
     </div>
   </div>
 </div>
@@ -751,6 +804,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 <div id="split-sum-row"></div>
 <div class="view" id="view-activity"></div>
 <div class="view" id="view-secured"></div>
+<div class="view" id="view-savings"></div>
 
 <!-- FLOATING DREAM BUTTON -->
 <button class="ms-fab" id="ms-fab">
@@ -1101,36 +1155,43 @@ function makeExpItem(exp, compact) {
   return wrap;
 }
 
-/* ── SAVINGS CARD ── */
+/* ── SAVINGS CARD (Home Page) ── */
 function makeSavCard() {
   const card=document.createElement("div"); card.className="card";
   const hdr=document.createElement("div"); hdr.className="card-hdr";
   const hr=document.createElement("div"); hr.className="card-hdr-row";
-  const ht=document.createElement("div"); ht.className="card-title grn"; ht.textContent="Savings & Investments";
+  const ht=document.createElement("div"); ht.className="card-title grn"; ht.textContent="Savings Allocation";
   hr.append(ht); hdr.append(hr);
   const body=document.createElement("div"); body.className="card-body";
-  SAVINGS.forEach(s=>{
-    const d=state.savings?.[s.id]||{};
-    const val=parseFloat(d.amount||0)||0;
-    const si=document.createElement("div"); si.className="sav-item";
-    const sl=document.createElement("div");
-    const sn=document.createElement("div"); sn.className="sav-name"; sn.textContent=s.name;
-    const snt=document.createElement("div"); snt.className="sav-note"; snt.textContent=s.note;
+
+  const SAV_ACCOUNTS = [
+    {id:"sav_lloyds", label:"🇬🇧 Lloyds UK",     who:"uk",    cur:"GBP", placeholder:"GBP amount", note:"Fix.com earnings stay in UK"},
+    {id:"sav_asad",   label:"🔵 Asad — HBL",    who:"asad",  cur:"PKR", placeholder:"PKR amount", note:"Asad's saving allocation"},
+    {id:"sav_filza",  label:"🩷 Filza — HBL",   who:"filza", cur:"PKR", placeholder:"PKR amount", note:"Filza's saving allocation"},
+  ];
+
+  SAV_ACCOUNTS.forEach(s => {
+    const val = parseFloat(state.savings?.[s.id]?.amount||0)||0;
+    const si = document.createElement("div"); si.className="sav-item";
+    const sl = document.createElement("div");
+    const sn = document.createElement("div"); sn.className="sav-name"; sn.textContent=s.label;
+    const snt = document.createElement("div"); snt.className="sav-note"; snt.textContent=s.note;
     sl.append(sn,snt);
-    const sr=document.createElement("div"); sr.className="sav-rt";
-    const sa=document.createElement("div"); sa.className="sav-amt"; sa.textContent=(s.cur==="GBP"?fmtG(val):fmt(val));
-    const sc2=document.createElement("div"); sc2.className="sav-curr"; sc2.textContent=s.cur;
-    const srow=document.createElement("div"); srow.className="sav-row";
-    const sil=document.createElement("span"); sil.className="sav-inp-lbl"; sil.textContent="Update:";
-    const sii=document.createElement("input"); sii.className="sav-inp"; sii.type="number"; sii.min="0"; sii.value=val||""; sii.placeholder=s.cur;
-    sii.onchange=async()=>{
-      const nv=parseFloat(sii.value)||0;
+    const sr = document.createElement("div"); sr.className="sav-rt";
+    const sa = document.createElement("div"); sa.className="sav-amt"; sa.textContent=(s.cur==="GBP"?fmtG(val):fmt(val));
+    const sc2 = document.createElement("div"); sc2.className="sav-curr"; sc2.textContent=s.cur;
+    const srow = document.createElement("div"); srow.className="sav-row";
+    const sil = document.createElement("span"); sil.className="sav-inp-lbl"; sil.textContent="Update:";
+    const sii = document.createElement("input"); sii.className="sav-inp"; sii.type="number"; sii.min="0"; sii.value=val||""; sii.placeholder=s.cur;
+    sii.onchange = async () => {
+      const nv = parseFloat(sii.value)||0;
       await update(ref(db,"af/savings/"+s.id),{amount:nv});
-      sa.textContent=(s.cur==="GBP"?fmtG(nv):fmt(nv));
+      sa.textContent = (s.cur==="GBP"?fmtG(nv):fmt(nv));
       toast("Savings updated");
     };
     srow.append(sil,sii); sr.append(sa,sc2,srow); si.append(sl,sr); body.append(si);
   });
+
   card.append(hdr,body); return card;
 }
 
@@ -2093,6 +2154,222 @@ function renderSecured(container){
   });
 }
 
+/* ── SAVINGS TAB ── */
+function renderSavings(container) {
+  container.innerHTML = "";
+  if(!currentUser) return;
+
+  const SAV_ACCOUNTS = [
+    {id:"sav_lloyds", label:"🇬🇧 Lloyds UK",   who:"uk",    cur:"GBP", icon:"🏦"},
+    {id:"sav_asad",   label:"🔵 Asad — HBL",   who:"asad",  cur:"PKR", icon:"👤"},
+    {id:"sav_filza",  label:"🩷 Filza — HBL",  who:"filza", cur:"PKR", icon:"👤"},
+  ];
+
+  // ── Load all-time monthly history from Firebase ──
+  // Path: af/savings/history/YYYY_MM/{sav_lloyds, sav_asad, sav_filza, totalPKR, net}
+  onValue(ref(db,"af/savings"), snap => {
+    container.innerHTML = "";
+    const savData = snap.val()||{};
+
+    // Current values
+    const lloydsCur = parseFloat(savData.sav_lloyds?.amount||0)||0;
+    const asadCur   = parseFloat(savData.sav_asad?.amount||0)||0;
+    const filzaCur  = parseFloat(savData.sav_filza?.amount||0)||0;
+    const totalPKR  = asadCur + filzaCur;
+
+    // ── HERO BANNER ──
+    const hero = document.createElement("div"); hero.className="sav-tab-hero";
+    hero.innerHTML = `
+      <div class="sav-hero-title">💰 Total Savings</div>
+      <div class="sav-hero-total">${fmt(totalPKR)}</div>
+      <div class="sav-hero-sub">PKR combined · ${fmtG(lloydsCur)} GBP in Lloyds UK</div>
+      <div class="sav-hero-grid">
+        <div class="sav-hero-cell">
+          <div class="sav-hero-cell-lbl">🇬🇧 Lloyds</div>
+          <div class="sav-hero-cell-val gbp">${fmtG(lloydsCur)}</div>
+        </div>
+        <div class="sav-hero-cell">
+          <div class="sav-hero-cell-lbl">🔵 Asad HBL</div>
+          <div class="sav-hero-cell-val">${fmt(asadCur)}</div>
+        </div>
+        <div class="sav-hero-cell">
+          <div class="sav-hero-cell-lbl">🩷 Filza HBL</div>
+          <div class="sav-hero-cell-val">${fmt(filzaCur)}</div>
+        </div>
+      </div>`;
+    container.append(hero);
+
+    // ── ALLOCATION CARDS ──
+    const allocTitle = document.createElement("div"); allocTitle.className="sav-alloc-title";
+    allocTitle.textContent = "Update Savings Balances";
+    container.append(allocTitle);
+
+    SAV_ACCOUNTS.forEach(s => {
+      const val = parseFloat(savData[s.id]?.amount||0)||0;
+      const card = document.createElement("div"); card.className="sav-alloc-card";
+
+      const hdr = document.createElement("div"); hdr.className="sav-alloc-hdr";
+      const nm = document.createElement("div"); nm.className="sav-alloc-name";
+      nm.innerHTML = `<span class="sav-alloc-name-icon">${s.icon}</span>${s.label}`;
+      const badge = document.createElement("div");
+      badge.className = "sav-alloc-badge " + s.who;
+      badge.textContent = s.cur==="GBP" ? fmtG(val) : fmt(val);
+      hdr.append(nm, badge);
+
+      const body = document.createElement("div"); body.className="sav-alloc-body";
+
+      // Current month net for PKR accounts
+      if(s.cur==="PKR") {
+        const inc = s.who==="asad" ? (incRecvd("asad","PKR")||0) : (incRecvd("filza","PKR")||0);
+        const spent = s.who==="asad" ? expTotal("asad") : expTotal("filza");
+        const net = inc - spent;
+        const r1 = document.createElement("div"); r1.className="sav-alloc-row";
+        r1.innerHTML=`<span class="sav-alloc-lbl">This month's net</span><span class="sav-alloc-val" style="color:${net>=0?"var(--grn)":"var(--rose)"}">${net>=0?"+":"−"}${fmt(Math.abs(net))}</span>`;
+        body.append(r1);
+      }
+
+      // Update input
+      const inputRow = document.createElement("div"); inputRow.className="sav-alloc-input-row";
+      const lbl = document.createElement("span"); lbl.className="sav-alloc-inp-lbl"; lbl.textContent="New balance:";
+      const inp = document.createElement("input"); inp.className="sav-alloc-inp"; inp.type="number"; inp.min="0";
+      inp.placeholder = s.cur==="GBP" ? "e.g. 3200" : "e.g. 250000";
+      inp.value = val||"";
+      const btn = document.createElement("button"); btn.className="sav-alloc-btn"; btn.textContent="Save";
+      btn.onclick = async () => {
+        const nv = parseFloat(inp.value)||0;
+        await update(ref(db,"af/savings/"+s.id),{amount:nv});
+        // Also save to monthly history
+        const histKey = `af/savings/history/${cy}_${String(cm+1).padStart(2,"0")}`;
+        await update(ref(db,histKey),{[s.id]:nv, ts:Date.now()});
+        badge.textContent = s.cur==="GBP" ? fmtG(nv) : fmt(nv);
+        toast("Saved ✓");
+      };
+      inputRow.append(lbl,inp,btn);
+      body.append(inputRow);
+      card.append(hdr,body);
+      container.append(card);
+    });
+
+    // ── LINE GRAPH ──
+    const graphTitle = document.createElement("div"); graphTitle.className="sav-graph-title";
+    graphTitle.textContent = "📈 Savings Over Time";
+    container.append(graphTitle);
+
+    const graphWrap = document.createElement("div"); graphWrap.className="sav-graph-wrap";
+
+    // Build history data
+    const history = savData.history||{};
+    const months = Object.keys(history).sort();
+
+    if(months.length < 2) {
+      const nd = document.createElement("div"); nd.className="sav-no-data";
+      nd.textContent = "Graph will appear once you've saved data for 2+ months.";
+      graphWrap.append(nd);
+    } else {
+      // Legend
+      const leg = document.createElement("div"); leg.className="sav-graph-legend";
+      [{label:"Asad HBL",color:"#4A90D0"},{label:"Filza HBL",color:"#C04888"},{label:"Total PKR",color:"#2A5438"}].forEach(l=>{
+        leg.innerHTML += `<div class="sav-graph-leg-item"><div class="sav-graph-leg-dot" style="background:${l.color}"></div>${l.label}</div>`;
+      });
+      graphWrap.append(leg);
+
+      // SVG line graph
+      const W=340, H=160, PL=42, PR=20, PT=20, PB=38;
+      const gW=W-PL-PR, gH=H-PT-PB;
+      const n = months.length;
+
+      const asadVals  = months.map(m=>parseFloat(history[m]?.sav_asad||0));
+      const filzaVals = months.map(m=>parseFloat(history[m]?.sav_filza||0));
+      const totalVals = months.map(m=>(parseFloat(history[m]?.sav_asad||0)+parseFloat(history[m]?.sav_filza||0)));
+
+      const maxVal = Math.max(...totalVals, 1);
+
+      function xPos(i) { return PL + (n===1?gW/2:(i/(n-1))*gW); }
+      function yPos(v) { return PT + gH - (v/maxVal)*gH; }
+      function makePath(vals, color, dashed=false) {
+        if(vals.length<2) return "";
+        let d="M";
+        vals.forEach((v,i)=>{ d+=(i>0?" L":"")+xPos(i).toFixed(1)+","+yPos(v).toFixed(1); });
+        return `<path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"${dashed?' stroke-dasharray="4,3"':''}/>`;
+      }
+      function makeArea(vals, color) {
+        if(vals.length<2) return "";
+        let d="M"+xPos(0).toFixed(1)+","+(PT+gH);
+        vals.forEach((v,i)=>{ d+=" L"+xPos(i).toFixed(1)+","+yPos(v).toFixed(1); });
+        d+=" L"+xPos(n-1).toFixed(1)+","+(PT+gH)+" Z";
+        return `<path d="${d}" fill="${color}" fill-opacity="0.07"/>`;
+      }
+
+      // Y axis labels
+      let yLabels="";
+      [0,.25,.5,.75,1].forEach(f=>{
+        const v=maxVal*f, y=yPos(v);
+        const lbl=v>=100000?(v/100000).toFixed(1)+"L":v>=1000?Math.round(v/1000)+"K":"0";
+        yLabels+=`<text x="${PL-5}" y="${y+4}" text-anchor="end" font-size="7" fill="rgba(60,80,60,0.45)" font-family="DM Sans,sans-serif">${lbl}</text>`;
+        yLabels+=`<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="rgba(0,0,0,0.05)" stroke-width="1"/>`;
+      });
+
+      // X axis labels
+      let xLabels="";
+      months.forEach((m,i)=>{
+        const parts=m.split("_");
+        const lbl=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][(parseInt(parts[1]||1)-1)]||"";
+        xLabels+=`<text x="${xPos(i).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="7" fill="rgba(60,80,60,0.5)" font-family="DM Sans,sans-serif">${lbl} ${(parts[0]||"").slice(2)}</text>`;
+      });
+
+      // Dream milestone markers on the line
+      let dreamMarkers="";
+      MILESTONES.forEach((ms,mi)=>{
+        if(ms.cur!=="PKR") return;
+        const ty = PT + gH - (ms.cost/maxVal)*gH;
+        if(ty < PT || ty > PT+gH) return;
+        dreamMarkers+=`<line x1="${PL}" y1="${ty.toFixed(1)}" x2="${W-PR}" y2="${ty.toFixed(1)}" stroke="rgba(200,168,60,0.25)" stroke-width="1" stroke-dasharray="3,4"/>`;
+        dreamMarkers+=`<text x="${W-PR+2}" y="${(ty+4).toFixed(1)}" font-size="9" fill="rgba(180,140,40,0.7)">${ms.icon}</text>`;
+        const costLbl=ms.cost>=100000?(ms.cost/100000).toFixed(0)+"L":"";
+        if(costLbl) dreamMarkers+=`<text x="${PL+2}" y="${(ty-2).toFixed(1)}" font-size="6" fill="rgba(180,140,40,0.55)" font-family="DM Sans,sans-serif">${costLbl}</text>`;
+      });
+
+      // Dots on lines
+      let dots="";
+      totalVals.forEach((v,i)=>{
+        dots+=`<circle cx="${xPos(i).toFixed(1)}" cy="${yPos(v).toFixed(1)}" r="3" fill="#2A5438"/>`;
+      });
+      asadVals.forEach((v,i)=>{
+        dots+=`<circle cx="${xPos(i).toFixed(1)}" cy="${yPos(v).toFixed(1)}" r="2.5" fill="#4A90D0"/>`;
+      });
+      filzaVals.forEach((v,i)=>{
+        dots+=`<circle cx="${xPos(i).toFixed(1)}" cy="${yPos(v).toFixed(1)}" r="2.5" fill="#C04888"/>`;
+      });
+
+      const svgWrap=document.createElement("div"); svgWrap.className="sav-graph-canvas-wrap";
+      svgWrap.innerHTML=`<svg id="sav-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+        ${yLabels}${dreamMarkers}
+        ${makeArea(totalVals,"#2A5438")}
+        ${makePath(totalVals,"#2A5438")}
+        ${makePath(asadVals,"#4A90D0",true)}
+        ${makePath(filzaVals,"#C04888",true)}
+        ${dots}${xLabels}
+      </svg>`;
+      graphWrap.append(svgWrap);
+
+      // Month-by-month table
+      const tbl=document.createElement("div"); tbl.className="sav-month-table";
+      tbl.innerHTML=`<div class="sav-month-row-hdr"><span>Month</span><span>Asad</span><span>Filza</span><span>Total</span></div>`;
+      [...months].reverse().forEach(m=>{
+        const parts=m.split("_");
+        const monName=(["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][(parseInt(parts[1]||1)-1)]||"")+" "+(parts[0]||"").slice(2);
+        const a=parseFloat(history[m]?.sav_asad||0), f=parseFloat(history[m]?.sav_filza||0), t=a+f;
+        const row=document.createElement("div"); row.className="sav-month-row";
+        row.innerHTML=`<span>${monName}</span><span class="pos">${fmt(a)}</span><span class="pos">${fmt(f)}</span><span class="pos">${fmt(t)}</span>`;
+        tbl.append(row);
+      });
+      graphWrap.append(tbl);
+    }
+
+    container.append(graphWrap);
+  }, {onlyOnce:true});
+}
+
 /* ── RENDER ALL ── */
 function renderAll() {
   if(!currentUser) return;
@@ -2104,6 +2381,7 @@ function renderAll() {
   else if(currentView==="split") renderSplit(document.getElementById("view-split"));
   else if(currentView==="activity") renderActivity(document.getElementById("view-activity"));
   else if(currentView==="secured")  renderSecured(document.getElementById("view-secured"));
+  else if(currentView==="savings")  renderSavings(document.getElementById("view-savings"));
 }
 
 /* ── TABS ── */
