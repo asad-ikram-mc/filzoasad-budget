@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0A1A10"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/><!-- v5.8 -->
+<meta http-equiv="Expires" content="0"/><!-- v6.0 -->
 <!-- v3.1 -->
 <title>Asad &amp; Filza</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
@@ -125,6 +125,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 .settings-btn{position:absolute;right:24px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:15px;padding:4px 5px;color:rgba(200,168,60,0.55);line-height:1;}
 .settings-btn:active{color:rgba(200,168,60,0.9);}
 .logged-in-as{font-size:9px;color:rgba(200,230,210,0.38);text-align:center;margin-bottom:.35rem;letter-spacing:.5px;}
+
+/* == FINISH LINE PROGRESS BARS == */
+.progress-panel{background:linear-gradient(180deg,#061209 0%,#0D2418 100%);padding:.6rem 1.1rem .85rem;border-bottom:1px solid rgba(255,255,255,.06);}
+.prog-row{margin-bottom:.55rem;}
+.prog-row:last-child{margin-bottom:0;}
+.prog-lbl-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.prog-name{font-size:10px;font-weight:600;color:rgba(200,230,210,0.5);text-transform:uppercase;letter-spacing:.8px;display:flex;align-items:center;gap:5px;}
+.prog-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.prog-dot.asad{background:rgba(80,150,220,0.85);}
+.prog-dot.filza{background:rgba(200,80,150,0.85);}
+.prog-dot.both{background:rgba(200,168,60,0.85);}
+.prog-stats{font-size:9px;color:rgba(200,230,210,0.35);display:flex;gap:6px;align-items:center;}
+.prog-stat-spent{color:rgba(240,180,80,0.85);}
+.prog-stat-saved{color:rgba(90,210,130,0.85);}
+.prog-track{position:relative;height:6px;background:rgba(255,255,255,.08);border-radius:10px;overflow:visible;}
+.prog-fill{position:absolute;top:0;left:0;height:100%;border-radius:10px;transition:width .9s cubic-bezier(.2,.85,.3,1);}
+.prog-fill.asad{background:linear-gradient(90deg,#1A5A9A,#4A90D0);}
+.prog-fill.filza{background:linear-gradient(90deg,#8A2058,#C04888);}
+.prog-fill.both{background:linear-gradient(90deg,#7A5808,#C09030);}
+.prog-end-marker{position:absolute;right:0;top:-2px;width:2px;height:10px;background:rgba(255,255,255,.2);border-radius:2px;}
 /* PHOTO HERO */
 .hero{position:relative;overflow:hidden;height:300px;}
 .hero img{width:100%;height:100%;object-fit:cover;object-position:center 52%;display:block;}
@@ -506,6 +526,31 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
     <div class="hero-eyebrow">❤</div>
     <div class="hero-quote">"Building our future, one month at a time"</div>
   </div>
+
+<!-- FINISH LINE BARS -->
+<div class="progress-panel" id="progress-panel">
+  <div class="prog-row">
+    <div class="prog-lbl-row">
+      <div class="prog-name"><div class="prog-dot asad"></div>Asad</div>
+      <div class="prog-stats"><span class="prog-stat-spent" id="pa-sp"></span><span>&nbsp;/&nbsp;</span><span id="pa-bu"></span><span>&nbsp;&middot;&nbsp;</span><span class="prog-stat-saved" id="pa-sv"></span></div>
+    </div>
+    <div class="prog-track"><div class="prog-fill asad" id="pa-bar" style="width:0%"></div><div class="prog-end-marker"></div></div>
+  </div>
+  <div class="prog-row">
+    <div class="prog-lbl-row">
+      <div class="prog-name"><div class="prog-dot filza"></div>Filza</div>
+      <div class="prog-stats"><span class="prog-stat-spent" id="pf-sp"></span><span>&nbsp;/&nbsp;</span><span id="pf-bu"></span><span>&nbsp;&middot;&nbsp;</span><span class="prog-stat-saved" id="pf-sv"></span></div>
+    </div>
+    <div class="prog-track"><div class="prog-fill filza" id="pf-bar" style="width:0%"></div><div class="prog-end-marker"></div></div>
+  </div>
+  <div class="prog-row">
+    <div class="prog-lbl-row">
+      <div class="prog-name"><div class="prog-dot both"></div>Household</div>
+      <div class="prog-stats"><span class="prog-stat-spent" id="pb-sp"></span><span>&nbsp;/&nbsp;</span><span id="pb-bu"></span><span>&nbsp;&middot;&nbsp;</span><span class="prog-stat-saved" id="pb-sv"></span></div>
+    </div>
+    <div class="prog-track"><div class="prog-fill both" id="pb-bar" style="width:0%"></div><div class="prog-end-marker"></div></div>
+  </div>
+</div>
 </div>
 
 <!-- TOPBAR -->
@@ -1701,9 +1746,44 @@ function renderActivity(container){
 }
 
 window.openEditModal = openEditModal;
+/* -- PROGRESS BARS -- */
+function updateProgressBars(){
+  if(!currentUser) return;
+  function sh(n){ n=Math.abs(Math.round(n)); if(n>=100000) return (n/100000).toFixed(1).replace(/\.0$/,"")+"L"; if(n>=1000) return Math.round(n/1000)+"K"; return n; }
+  const aExp=EXPENSES.filter(e=>e.who==="asad");
+  const fExp=EXPENSES.filter(e=>e.who==="filza");
+  const aBu=aExp.reduce((s,e)=>s+e.budget,0);
+  const fBu=fExp.reduce((s,e)=>s+e.budget,0);
+  const aSp=aExp.reduce((s,e)=>s+totalSpent(e.id),0);
+  const fSp=fExp.reduce((s,e)=>s+totalSpent(e.id),0);
+  const aInc=incRecvd("asad","PKR"), fInc=incRecvd("filza","PKR");
+  const aSv=aInc-aSp, fSv=fInc-fSp;
+  function set(bar,sp,bu,sv,pct){
+    const b=document.getElementById(bar); if(b) b.style.width=Math.min(100,pct)+"%";
+    const s=document.getElementById(sp);  if(s) s.textContent=sh(pct/100*bu)+" spent";
+    const buel=document.getElementById(bu); if(buel) buel.textContent=sh(buel._bu||0)+" budget";
+    const svel=document.getElementById(sv); if(svel) svel.textContent=(sv<0?"-":"+")+sh(Math.abs(sv))+" saved";
+  }
+  const aPct=aBu>0?Math.round(aSp/aBu*100):0;
+  const fPct=fBu>0?Math.round(fSp/fBu*100):0;
+  const bPct=(aBu+fBu)>0?Math.round((aSp+fSp)/(aBu+fBu)*100):0;
+  const aBar=document.getElementById("pa-bar"); if(aBar) aBar.style.width=Math.min(100,aPct)+"%";
+  const fBar=document.getElementById("pf-bar"); if(fBar) fBar.style.width=Math.min(100,fPct)+"%";
+  const bBar=document.getElementById("pb-bar"); if(bBar) bBar.style.width=Math.min(100,bPct)+"%";
+  const set2=(spId,buId,svId,spent,budget,saved)=>{
+    const se=document.getElementById(spId); if(se) se.textContent=sh(spent)+" spent";
+    const be=document.getElementById(buId); if(be) be.textContent=sh(budget)+" budget";
+    const sve=document.getElementById(svId); if(sve) sve.textContent=(saved<0?"-":"+")+sh(Math.abs(saved))+" saved";
+  };
+  set2("pa-sp","pa-bu","pa-sv",aSp,aBu,aSv);
+  set2("pf-sp","pf-bu","pf-sv",fSp,fBu,fSv);
+  set2("pb-sp","pb-bu","pb-sv",aSp+fSp,aBu+fBu,aSv+fSv);
+}
+
 /* ── RENDER ALL ── */
 function renderAll() {
   if(!currentUser) return;
+  updateProgressBars();
   document.getElementById("mlabel").textContent=MONTHS[cm]+" "+cy;
   if(currentView==="combined")  renderCombined(document.getElementById("view-combined"));
   else if(currentView==="asad")  renderAsad(document.getElementById("view-asad"));
