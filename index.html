@@ -2257,15 +2257,26 @@ function renderSavings(container) {
 
     const graphWrap = document.createElement("div"); graphWrap.className="sav-graph-wrap";
 
-    // Build history data
+    // Build history data — always include current month from live balances
     const history = savData.history||{};
-    const months = Object.keys(history).sort();
+    const curMonKey = `${cy}_${String(cm+1).padStart(2,"0")}`;
+    // Inject current live values into history snapshot for graph
+    const histWithCurrent = Object.assign({}, history, {
+      [curMonKey]: {
+        sav_asad:  asadCur,
+        sav_filza: filzaCur,
+        sav_lloyds: lloydsCur,
+        ts: Date.now()
+      }
+    });
+    const months = Object.keys(histWithCurrent).sort();
 
-    if(months.length < 2) {
+    if(months.length < 1) {
       const nd = document.createElement("div"); nd.className="sav-no-data";
-      nd.textContent = "Graph will appear once you've saved data for 2+ months.";
+      nd.textContent = "Enter your savings balances above to see the graph.";
       graphWrap.append(nd);
     } else {
+      // Use histWithCurrent instead of history for all graph data
       // Legend
       const leg = document.createElement("div"); leg.className="sav-graph-legend";
       [{label:"Asad HBL",color:"#4A90D0"},{label:"Filza HBL",color:"#C04888"},{label:"Total PKR",color:"#2A5438"}].forEach(l=>{
@@ -2278,16 +2289,21 @@ function renderSavings(container) {
       const gW=W-PL-PR, gH=H-PT-PB;
       const n = months.length;
 
-      const asadVals  = months.map(m=>parseFloat(history[m]?.sav_asad||0));
-      const filzaVals = months.map(m=>parseFloat(history[m]?.sav_filza||0));
-      const totalVals = months.map(m=>(parseFloat(history[m]?.sav_asad||0)+parseFloat(history[m]?.sav_filza||0)));
+      const asadVals  = months.map(m=>parseFloat(histWithCurrent[m]?.sav_asad||0));
+      const filzaVals = months.map(m=>parseFloat(histWithCurrent[m]?.sav_filza||0));
+      const totalVals = months.map(m=>(parseFloat(histWithCurrent[m]?.sav_asad||0)+parseFloat(histWithCurrent[m]?.sav_filza||0)));
 
       const maxVal = Math.max(...totalVals, 1);
 
-      function xPos(i) { return PL + (n===1?gW/2:(i/(n-1))*gW); }
+      function xPos(i) { return PL + (n===1 ? gW/2 : (i/(n-1))*gW); }
       function yPos(v) { return PT + gH - (v/maxVal)*gH; }
       function makePath(vals, color, dashed=false) {
-        if(vals.length<2) return "";
+        if(vals.length===0) return "";
+        if(vals.length===1) {
+          // Single point — draw a short horizontal stub
+          const x=xPos(0), y=yPos(vals[0]);
+          return `<line x1="${(x-8).toFixed(1)}" y1="${y.toFixed(1)}" x2="${(x+8).toFixed(1)}" y2="${y.toFixed(1)}" stroke="${color}" stroke-width="2.5" stroke-linecap="round"${dashed?' stroke-dasharray="4,3"':''}/>`;
+        }
         let d="M";
         vals.forEach((v,i)=>{ d+=(i>0?" L":"")+xPos(i).toFixed(1)+","+yPos(v).toFixed(1); });
         return `<path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"${dashed?' stroke-dasharray="4,3"':''}/>`;
@@ -2358,7 +2374,7 @@ function renderSavings(container) {
       [...months].reverse().forEach(m=>{
         const parts=m.split("_");
         const monName=(["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][(parseInt(parts[1]||1)-1)]||"")+" "+(parts[0]||"").slice(2);
-        const a=parseFloat(history[m]?.sav_asad||0), f=parseFloat(history[m]?.sav_filza||0), t=a+f;
+        const a=parseFloat(histWithCurrent[m]?.sav_asad||0), f=parseFloat(histWithCurrent[m]?.sav_filza||0), t=a+f;
         const row=document.createElement("div"); row.className="sav-month-row";
         row.innerHTML=`<span>${monName}</span><span class="pos">${fmt(a)}</span><span class="pos">${fmt(f)}</span><span class="pos">${fmt(t)}</span>`;
         tbl.append(row);
