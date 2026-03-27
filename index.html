@@ -126,25 +126,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 .settings-btn:active{color:rgba(200,168,60,0.9);}
 .logged-in-as{font-size:9px;color:rgba(200,230,210,0.38);text-align:center;margin-bottom:.35rem;letter-spacing:.5px;}
 
-/* == FINISH LINE PROGRESS BARS == */
-.progress-panel{background:linear-gradient(180deg,#061209 0%,#0D2418 100%);padding:.6rem 1.1rem .85rem;border-bottom:1px solid rgba(255,255,255,.06);}
-.prog-row{margin-bottom:.55rem;}
-.prog-row:last-child{margin-bottom:0;}
-.prog-lbl-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
-.prog-name{font-size:10px;font-weight:600;color:rgba(200,230,210,0.5);text-transform:uppercase;letter-spacing:.8px;display:flex;align-items:center;gap:5px;}
-.prog-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
-.prog-dot.asad{background:rgba(80,150,220,0.85);}
-.prog-dot.filza{background:rgba(200,80,150,0.85);}
-.prog-dot.both{background:rgba(200,168,60,0.85);}
-.prog-stats{font-size:9px;color:rgba(200,230,210,0.35);display:flex;gap:6px;align-items:center;}
-.prog-stat-spent{color:rgba(240,180,80,0.85);}
-.prog-stat-saved{color:rgba(90,210,130,0.85);}
-.prog-track{position:relative;height:6px;background:rgba(255,255,255,.08);border-radius:10px;overflow:visible;}
-.prog-fill{position:absolute;top:0;left:0;height:100%;border-radius:10px;transition:width .9s cubic-bezier(.2,.85,.3,1);}
-.prog-fill.asad{background:linear-gradient(90deg,#1A5A9A,#4A90D0);}
-.prog-fill.filza{background:linear-gradient(90deg,#8A2058,#C04888);}
-.prog-fill.both{background:linear-gradient(90deg,#7A5808,#C09030);}
-.prog-end-marker{position:absolute;right:0;top:-2px;width:2px;height:10px;background:rgba(255,255,255,.2);border-radius:2px;}
+/* == FINISH LINE PROGRESS GRAPH == */
+.progress-panel{background:linear-gradient(180deg,#040D07 0%,#081A0F 60%,#0C2016 100%);padding:.7rem 1rem 1rem;border-bottom:1px solid rgba(255,255,255,.06);}
+.prog-panel-title{font-size:9px;font-weight:600;color:rgba(200,168,60,0.45);text-transform:uppercase;letter-spacing:1.8px;text-align:center;margin-bottom:.55rem;}
+.prog-graph-wrap{position:relative;width:100%;}
+#prog-svg{width:100%;display:block;overflow:visible;}
+.prog-legend{display:flex;justify-content:center;gap:16px;margin-top:.45rem;}
+.prog-leg-item{display:flex;align-items:center;gap:5px;font-size:9px;font-weight:600;color:rgba(200,230,210,0.4);text-transform:uppercase;letter-spacing:.6px;}
+.prog-leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.prog-leg-dot.asad{background:#4A90D0;}
+.prog-leg-dot.filza{background:#C04888;}
+.prog-leg-dot.both{background:#C09030;}
+.prog-stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:.6rem;}
+.prog-stat-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:6px 8px;text-align:center;}
+.prog-stat-name{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;}
+.prog-stat-name.asad{color:rgba(74,144,208,.85);}
+.prog-stat-name.filza{color:rgba(192,72,136,.85);}
+.prog-stat-name.both{color:rgba(192,144,48,.85);}
+.prog-stat-spent2{font-size:11px;font-weight:600;color:rgba(240,180,80,.9);line-height:1.2;}
+.prog-stat-budget2{font-size:9px;color:rgba(200,230,210,.28);margin-top:1px;}
+.prog-stat-saved2{font-size:10px;font-weight:600;color:rgba(90,210,130,.85);margin-top:2px;}
 /* PHOTO HERO */
 .hero{position:relative;overflow:hidden;height:300px;}
 .hero img{width:100%;height:100%;object-fit:cover;object-position:center 52%;display:block;}
@@ -527,28 +528,147 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
     <div class="hero-quote">"Building our future, one month at a time"</div>
   </div>
 
-<!-- FINISH LINE BARS -->
+<!-- FINISH LINE GRAPH -->
 <div class="progress-panel" id="progress-panel">
-  <div class="prog-row">
-    <div class="prog-lbl-row">
-      <div class="prog-name"><div class="prog-dot asad"></div>Asad</div>
-      <div class="prog-stats"><span class="prog-stat-spent" id="pa-sp"></span><span>&nbsp;/&nbsp;</span><span id="pa-bu"></span><span>&nbsp;&middot;&nbsp;</span><span class="prog-stat-saved" id="pa-sv"></span></div>
-    </div>
-    <div class="prog-track"><div class="prog-fill asad" id="pa-bar" style="width:0%"></div><div class="prog-end-marker"></div></div>
+  <div class="prog-panel-title">🏁 Monthly Race</div>
+  <div class="prog-graph-wrap">
+    <svg id="prog-svg" viewBox="0 0 340 110" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Track gradients -->
+        <linearGradient id="gA" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#1A5A9A"/>
+          <stop offset="100%" stop-color="#5AAAE8"/>
+        </linearGradient>
+        <linearGradient id="gF" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#8A2058"/>
+          <stop offset="100%" stop-color="#D060A0"/>
+        </linearGradient>
+        <linearGradient id="gB" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#7A5808"/>
+          <stop offset="100%" stop-color="#D4A030"/>
+        </linearGradient>
+        <!-- Glow filters -->
+        <filter id="glowA" x="-20%" y="-100%" width="140%" height="300%">
+          <feGaussianBlur stdDeviation="2.5" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glowF" x="-20%" y="-100%" width="140%" height="300%">
+          <feGaussianBlur stdDeviation="2.5" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glowB" x="-20%" y="-100%" width="140%" height="300%">
+          <feGaussianBlur stdDeviation="2.5" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <clipPath id="clipA"><rect id="clip-a" x="30" y="0" width="0" height="110"/></clipPath>
+        <clipPath id="clipF"><rect id="clip-f" x="30" y="0" width="0" height="110"/></clipPath>
+        <clipPath id="clipB"><rect id="clip-b" x="30" y="0" width="0" height="110"/></clipPath>
+      </defs>
+
+      <!-- Y-axis labels -->
+      <text x="27" y="25"  text-anchor="end" font-size="7.5" fill="rgba(74,144,208,0.7)"  font-family="DM Sans,sans-serif" font-weight="600">Asad</text>
+      <text x="27" y="59"  text-anchor="end" font-size="7.5" fill="rgba(192,72,136,0.7)"  font-family="DM Sans,sans-serif" font-weight="600">Filza</text>
+      <text x="27" y="93"  text-anchor="end" font-size="7.5" fill="rgba(192,144,48,0.7)"  font-family="DM Sans,sans-serif" font-weight="600">Both</text>
+
+      <!-- Track backgrounds -->
+      <rect x="30" y="16" width="290" height="10" rx="5" fill="rgba(255,255,255,0.06)"/>
+      <rect x="30" y="50" width="290" height="10" rx="5" fill="rgba(255,255,255,0.06)"/>
+      <rect x="30" y="84" width="290" height="10" rx="5" fill="rgba(255,255,255,0.06)"/>
+
+      <!-- 25% 50% 75% grid lines -->
+      <line x1="102.5" y1="14" x2="102.5" y2="96" stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="2,3"/>
+      <line x1="175"   y1="14" x2="175"   y2="96" stroke="rgba(255,255,255,0.07)" stroke-width="1" stroke-dasharray="2,3"/>
+      <line x1="247.5" y1="14" x2="247.5" y2="96" stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="2,3"/>
+      <text x="102.5" y="108" text-anchor="middle" font-size="6" fill="rgba(255,255,255,0.18)" font-family="DM Sans,sans-serif">25%</text>
+      <text x="175"   y="108" text-anchor="middle" font-size="6" fill="rgba(255,255,255,0.22)" font-family="DM Sans,sans-serif">50%</text>
+      <text x="247.5" y="108" text-anchor="middle" font-size="6" fill="rgba(255,255,255,0.18)" font-family="DM Sans,sans-serif">75%</text>
+
+      <!-- Filled tracks (clipped) -->
+      <rect x="30" y="16" width="290" height="10" rx="5" fill="url(#gA)" clip-path="url(#clipA)" filter="url(#glowA)"/>
+      <rect x="30" y="50" width="290" height="10" rx="5" fill="url(#gF)" clip-path="url(#clipF)" filter="url(#glowF)"/>
+      <rect x="30" y="84" width="290" height="10" rx="5" fill="url(#gB)" clip-path="url(#clipB)" filter="url(#glowB)"/>
+
+      <!-- Finish line (checkered flag effect) -->
+      <rect x="317" y="12" width="3" height="88" fill="rgba(255,255,255,0.25)" rx="1"/>
+      <!-- Checkered squares -->
+      <rect x="320" y="12" width="5" height="5" fill="rgba(255,255,255,0.55)"/>
+      <rect x="325" y="12" width="5" height="5" fill="rgba(0,0,0,0.0)"/>
+      <rect x="320" y="17" width="5" height="5" fill="rgba(0,0,0,0.0)"/>
+      <rect x="325" y="17" width="5" height="5" fill="rgba(255,255,255,0.55)"/>
+      <rect x="320" y="22" width="5" height="5" fill="rgba(255,255,255,0.55)"/>
+      <rect x="325" y="22" width="5" height="5" fill="rgba(0,0,0,0.0)"/>
+      <rect x="320" y="27" width="5" height="5" fill="rgba(0,0,0,0.0)"/>
+      <rect x="325" y="27" width="5" height="5" fill="rgba(255,255,255,0.55)"/>
+      <rect x="320" y="32" width="5" height="5" fill="rgba(255,255,255,0.55)"/>
+      <rect x="325" y="32" width="5" height="5" fill="rgba(0,0,0,0.0)"/>
+      <rect x="320" y="37" width="5" height="5" fill="rgba(0,0,0,0.0)"/>
+      <rect x="325" y="37" width="5" height="5" fill="rgba(255,255,255,0.55)"/>
+      <rect x="320" y="42" width="5" height="5" fill="rgba(255,255,255,0.55)"/>
+      <rect x="325" y="42" width="5" height="5" fill="rgba(0,0,0,0.0)"/>
+      <rect x="320" y="47" width="5" height="5" fill="rgba(0,0,0,0.0)"/>
+      <rect x="325" y="47" width="5" height="5" fill="rgba(255,255,255,0.55)"/>
+      <rect x="320" y="52" width="5" height="5" fill="rgba(255,255,255,0.55)"/>
+      <rect x="325" y="52" width="5" height="5" fill="rgba(0,0,0,0.0)"/>
+      <rect x="320" y="57" width="5" height="5" fill="rgba(0,0,0,0.0)"/>
+      <rect x="325" y="57" width="5" height="5" fill="rgba(255,255,255,0.55)"/>
+      <rect x="320" y="62" width="5" height="5" fill="rgba(255,255,255,0.55)"/>
+      <rect x="325" y="62" width="5" height="5" fill="rgba(0,0,0,0.0)"/>
+      <rect x="320" y="67" width="5" height="5" fill="rgba(0,0,0,0.0)"/>
+      <rect x="325" y="67" width="5" height="5" fill="rgba(255,255,255,0.55)"/>
+      <rect x="320" y="72" width="5" height="5" fill="rgba(255,255,255,0.55)"/>
+      <rect x="325" y="72" width="5" height="5" fill="rgba(0,0,0,0.0)"/>
+      <rect x="320" y="77" width="5" height="5" fill="rgba(0,0,0,0.0)"/>
+      <rect x="325" y="77" width="5" height="5" fill="rgba(255,255,255,0.55)"/>
+      <rect x="320" y="82" width="5" height="5" fill="rgba(255,255,255,0.55)"/>
+      <rect x="325" y="82" width="5" height="5" fill="rgba(0,0,0,0.0)"/>
+      <rect x="320" y="87" width="5" height="5" fill="rgba(0,0,0,0.0)"/>
+      <rect x="325" y="87" width="5" height="5" fill="rgba(255,255,255,0.55)"/>
+      <rect x="320" y="92" width="5" height="5" fill="rgba(255,255,255,0.55)"/>
+      <rect x="325" y="92" width="5" height="5" fill="rgba(0,0,0,0.0)"/>
+      <rect x="320" y="97" width="5" height="5" fill="rgba(0,0,0,0.0)"/>
+
+      <!-- Moving dot heads (updated by JS) -->
+      <circle id="dot-a" cx="30" cy="21" r="5.5" fill="#5AAAE8" filter="url(#glowA)"/>
+      <circle id="dot-f" cx="30" cy="55" r="5.5" fill="#D060A0" filter="url(#glowF)"/>
+      <circle id="dot-b" cx="30" cy="89" r="5.5" fill="#D4A030" filter="url(#glowB)"/>
+
+      <!-- Pct badges (updated by JS) -->
+      <rect id="badge-a-bg" x="0" y="10" width="24" height="13" rx="3" fill="rgba(74,144,208,0.18)"/>
+      <text id="badge-a" x="12" y="20" text-anchor="middle" font-size="8" fill="rgba(90,170,232,0.9)" font-family="DM Sans,sans-serif" font-weight="700">0%</text>
+      <rect id="badge-f-bg" x="0" y="44" width="24" height="13" rx="3" fill="rgba(192,72,136,0.18)"/>
+      <text id="badge-f" x="12" y="54" text-anchor="middle" font-size="8" fill="rgba(208,96,160,0.9)" font-family="DM Sans,sans-serif" font-weight="700">0%</text>
+      <rect id="badge-b-bg" x="0" y="78" width="24" height="13" rx="3" fill="rgba(192,144,48,0.18)"/>
+      <text id="badge-b" x="12" y="88" text-anchor="middle" font-size="8" fill="rgba(212,160,48,0.9)" font-family="DM Sans,sans-serif" font-weight="700">0%</text>
+    </svg>
   </div>
-  <div class="prog-row">
-    <div class="prog-lbl-row">
-      <div class="prog-name"><div class="prog-dot filza"></div>Filza</div>
-      <div class="prog-stats"><span class="prog-stat-spent" id="pf-sp"></span><span>&nbsp;/&nbsp;</span><span id="pf-bu"></span><span>&nbsp;&middot;&nbsp;</span><span class="prog-stat-saved" id="pf-sv"></span></div>
-    </div>
-    <div class="prog-track"><div class="prog-fill filza" id="pf-bar" style="width:0%"></div><div class="prog-end-marker"></div></div>
+
+  <!-- Legend -->
+  <div class="prog-legend">
+    <div class="prog-leg-item"><div class="prog-leg-dot asad"></div>Asad</div>
+    <div class="prog-leg-item"><div class="prog-leg-dot filza"></div>Filza</div>
+    <div class="prog-leg-item"><div class="prog-leg-dot both"></div>Household</div>
   </div>
-  <div class="prog-row">
-    <div class="prog-lbl-row">
-      <div class="prog-name"><div class="prog-dot both"></div>Household</div>
-      <div class="prog-stats"><span class="prog-stat-spent" id="pb-sp"></span><span>&nbsp;/&nbsp;</span><span id="pb-bu"></span><span>&nbsp;&middot;&nbsp;</span><span class="prog-stat-saved" id="pb-sv"></span></div>
+
+  <!-- Stat cards -->
+  <div class="prog-stats-row">
+    <div class="prog-stat-card">
+      <div class="prog-stat-name asad">Asad</div>
+      <div class="prog-stat-spent2"  id="pa-sp">—</div>
+      <div class="prog-stat-budget2" id="pa-bu">of —</div>
+      <div class="prog-stat-saved2"  id="pa-sv">— saved</div>
     </div>
-    <div class="prog-track"><div class="prog-fill both" id="pb-bar" style="width:0%"></div><div class="prog-end-marker"></div></div>
+    <div class="prog-stat-card">
+      <div class="prog-stat-name filza">Filza</div>
+      <div class="prog-stat-spent2"  id="pf-sp">—</div>
+      <div class="prog-stat-budget2" id="pf-bu">of —</div>
+      <div class="prog-stat-saved2"  id="pf-sv">— saved</div>
+    </div>
+    <div class="prog-stat-card">
+      <div class="prog-stat-name both">Household</div>
+      <div class="prog-stat-spent2"  id="pb-sp">—</div>
+      <div class="prog-stat-budget2" id="pb-bu">of —</div>
+      <div class="prog-stat-saved2"  id="pb-sv">— saved</div>
+    </div>
   </div>
 </div>
 </div>
@@ -1746,10 +1866,11 @@ function renderActivity(container){
 }
 
 window.openEditModal = openEditModal;
-/* -- PROGRESS BARS -- */
+/* -- PROGRESS GRAPH -- */
 function updateProgressBars(){
   if(!currentUser) return;
-  function sh(n){ n=Math.abs(Math.round(n)); if(n>=100000) return (n/100000).toFixed(1).replace(/\.0$/,"")+"L"; if(n>=1000) return Math.round(n/1000)+"K"; return n; }
+  function sh(n){ n=Math.abs(Math.round(n)); if(n>=100000) return (n/100000).toFixed(1).replace(/\.0$/,"")+"L"; if(n>=1000) return Math.round(n/1000)+"K"; return String(n); }
+
   const aExp=EXPENSES.filter(e=>e.who==="asad");
   const fExp=EXPENSES.filter(e=>e.who==="filza");
   const aBu=aExp.reduce((s,e)=>s+e.budget,0);
@@ -1758,26 +1879,64 @@ function updateProgressBars(){
   const fSp=fExp.reduce((s,e)=>s+totalSpent(e.id),0);
   const aInc=incRecvd("asad","PKR"), fInc=incRecvd("filza","PKR");
   const aSv=aInc-aSp, fSv=fInc-fSp;
-  function set(bar,sp,bu,sv,pct){
-    const b=document.getElementById(bar); if(b) b.style.width=Math.min(100,pct)+"%";
-    const s=document.getElementById(sp);  if(s) s.textContent=sh(pct/100*bu)+" spent";
-    const buel=document.getElementById(bu); if(buel) buel.textContent=sh(buel._bu||0)+" budget";
-    const svel=document.getElementById(sv); if(svel) svel.textContent=(sv<0?"-":"+")+sh(Math.abs(sv))+" saved";
+  const cBu=aBu+fBu, cSp=aSp+fSp, cSv=aSv+fSv;
+
+  const aPct=aBu>0?Math.min(100,Math.round(aSp/aBu*100)):0;
+  const fPct=fBu>0?Math.min(100,Math.round(fSp/fBu*100)):0;
+  const bPct=cBu>0?Math.min(100,Math.round(cSp/cBu*100)):0;
+
+  // SVG track width = 287 (x:30 to x:317)
+  const TW=287;
+  function animClip(id, pct){
+    const el=document.getElementById(id); if(!el) return;
+    const target=Math.round(pct/100*TW);
+    // animate via requestAnimationFrame
+    const start=parseFloat(el.getAttribute("width")||0);
+    const dur=900, t0=performance.now();
+    function step(now){
+      const p=Math.min((now-t0)/dur,1);
+      const ease=1-Math.pow(1-p,3);
+      el.setAttribute("width", start+(target-start)*ease);
+      if(p<1) requestAnimationFrame(step);
+      else el.setAttribute("width",target);
+    }
+    requestAnimationFrame(step);
   }
-  const aPct=aBu>0?Math.round(aSp/aBu*100):0;
-  const fPct=fBu>0?Math.round(fSp/fBu*100):0;
-  const bPct=(aBu+fBu)>0?Math.round((aSp+fSp)/(aBu+fBu)*100):0;
-  const aBar=document.getElementById("pa-bar"); if(aBar) aBar.style.width=Math.min(100,aPct)+"%";
-  const fBar=document.getElementById("pf-bar"); if(fBar) fBar.style.width=Math.min(100,fPct)+"%";
-  const bBar=document.getElementById("pb-bar"); if(bBar) bBar.style.width=Math.min(100,bPct)+"%";
-  const set2=(spId,buId,svId,spent,budget,saved)=>{
-    const se=document.getElementById(spId); if(se) se.textContent=sh(spent)+" spent";
-    const be=document.getElementById(buId); if(be) be.textContent=sh(budget)+" budget";
-    const sve=document.getElementById(svId); if(sve) sve.textContent=(saved<0?"-":"+")+sh(Math.abs(saved))+" saved";
-  };
-  set2("pa-sp","pa-bu","pa-sv",aSp,aBu,aSv);
-  set2("pf-sp","pf-bu","pf-sv",fSp,fBu,fSv);
-  set2("pb-sp","pb-bu","pb-sv",aSp+fSp,aBu+fBu,aSv+fSv);
+  function moveDot(dotId, pct){
+    const el=document.getElementById(dotId); if(!el) return;
+    const target=30+Math.round(pct/100*TW);
+    const start=parseFloat(el.getAttribute("cx")||30);
+    const dur=900, t0=performance.now();
+    function step(now){
+      const p=Math.min((now-t0)/dur,1);
+      const ease=1-Math.pow(1-p,3);
+      el.setAttribute("cx", start+(target-start)*ease);
+      if(p<1) requestAnimationFrame(step);
+      else el.setAttribute("cx",target);
+    }
+    requestAnimationFrame(step);
+  }
+
+  animClip("clip-a", aPct); moveDot("dot-a", aPct);
+  animClip("clip-f", fPct); moveDot("dot-f", fPct);
+  animClip("clip-b", bPct); moveDot("dot-b", bPct);
+
+  // Pct badges
+  const ba=document.getElementById("badge-a"); if(ba) ba.textContent=aPct+"%";
+  const bf=document.getElementById("badge-f"); if(bf) bf.textContent=fPct+"%";
+  const bb=document.getElementById("badge-b"); if(bb) bb.textContent=bPct+"%";
+
+  // Stat cards
+  const g=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  g("pa-sp", sh(aSp)+" spent");
+  g("pa-bu", "of "+sh(aBu)+" budget");
+  g("pa-sv", (aSv<0?"−":"+") + sh(Math.abs(aSv))+" saved");
+  g("pf-sp", sh(fSp)+" spent");
+  g("pf-bu", "of "+sh(fBu)+" budget");
+  g("pf-sv", (fSv<0?"−":"+") + sh(Math.abs(fSv))+" saved");
+  g("pb-sp", sh(cSp)+" spent");
+  g("pb-bu", "of "+sh(cBu)+" budget");
+  g("pb-sv", (cSv<0?"−":"+") + sh(Math.abs(cSv))+" saved");
 }
 
 /* ── RENDER ALL ── */
