@@ -829,7 +829,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue, get, push, remove, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue, get, push, remove, update, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 /* ── PASTE YOUR FIREBASE CONFIG HERE ── */
 const fbCfg = {
@@ -2064,8 +2064,9 @@ function renderSecured(container){
         item.append(icon, info, budget, tick);
         item.onclick = async () => {
           const newVal = !isSecured;
-          await update(ref(db, `${dbPath}/${exp.id}`), newVal ? true : null)
-            .catch(()=>{});
+          const itemRef = ref(db, `${dbPath}/${exp.id}`);
+          if(newVal) await set(itemRef, true).catch(()=>{});
+          else await remove(itemRef).catch(()=>{});
           // log to activity
           logActivity(
             "inc",
