@@ -78,7 +78,45 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 .login-who-btn.sel{border-color:rgba(200,168,60,0.7);background:rgba(200,168,60,0.12);color:rgba(230,210,140,0.9);}
 .login-session{font-size:10px;color:rgba(200,230,210,0.35);text-align:center;margin-top:10px;}
 
-/* ══ ACTIVITY TAB VIEW ══ */
+/* ══ SECURED TAB ══ */
+.sec-header{background:linear-gradient(135deg,var(--grn),var(--grnm));border-radius:16px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+.sec-header-left{}
+.sec-header-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;color:#EDF8EF;margin-bottom:2px;}
+.sec-header-sub{font-size:10px;color:rgba(220,245,225,0.55);letter-spacing:.4px;}
+.sec-header-pill{background:rgba(0,0,0,0.2);border-radius:20px;padding:6px 12px;text-align:center;}
+.sec-header-pill-val{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:#EDF8EF;line-height:1;}
+.sec-header-pill-lbl{font-size:9px;color:rgba(220,245,225,0.5);text-transform:uppercase;letter-spacing:.5px;margin-top:1px;}
+.sec-person-block{margin-bottom:14px;}
+.sec-person-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.sec-person-name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;}
+.sec-person-name.asad{color:var(--asad);}
+.sec-person-name.filza{color:var(--filza);}
+.sec-person-tally{font-size:10px;font-weight:600;color:var(--sf);}
+.sec-item{
+  background:var(--cw);border:1px solid var(--br);border-radius:14px;
+  padding:11px 13px;margin-bottom:7px;
+  display:flex;align-items:center;gap:12px;
+  box-shadow:0 1px 6px var(--sh);
+  cursor:pointer;transition:all .15s;
+  -webkit-user-select:none;user-select:none;
+}
+.sec-item:active{transform:scale(.98);}
+.sec-item.secured{background:#F0FAF3;border-color:#A8D8B0;}
+.sec-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.sec-info{flex:1;min-width:0;}
+.sec-name{font-size:13px;font-weight:600;color:var(--dk);margin-bottom:1px;}
+.sec-acct{font-size:10px;color:var(--sf);}
+.sec-budget{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;color:var(--dk);flex-shrink:0;margin-right:4px;}
+.sec-tick{width:26px;height:26px;border-radius:50%;border:2px solid var(--br);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;font-size:13px;background:var(--panel);}
+.sec-item.secured .sec-tick{background:var(--grn);border-color:var(--grn);color:#fff;}
+.sec-item.secured .sec-name{color:var(--grn);}
+.sec-item.secured .sec-budget{color:var(--grnm);}
+.sec-all-btn{width:100%;height:40px;border-radius:12px;border:1px solid var(--br);background:none;font-size:12px;font-weight:600;color:var(--sf);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:8px;transition:all .15s;}
+.sec-all-btn:active{background:var(--panel);}
+.sec-all-btn.all-secured{border-color:#A8D8B0;color:var(--grn);background:#F0FAF3;}
+.sec-reset-btn{width:100%;height:36px;border-radius:12px;border:1px solid var(--br);background:none;font-size:11px;font-weight:600;color:var(--sf);cursor:pointer;font-family:'DM Sans',sans-serif;opacity:.6;}
+.sec-reset-btn:active{opacity:1;background:var(--rosel);border-color:var(--rose);color:var(--rose);}
+.sec-empty{text-align:center;padding:2rem 1rem;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;color:var(--sf);}
 .act-filter{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
 .act-filter::-webkit-scrollbar{display:none;}
 .act-fchip{
@@ -556,6 +594,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
       <div class="tab"     data-view="filza">&#128100; Filza</div>
       <div class="tab"     data-view="split">&#9638; Split</div>
       <div class="tab"     data-view="activity">&#128336; Activity</div>
+      <div class="tab"     data-view="secured">&#128274; Secured</div>
     </div>
   </div>
 </div>
@@ -711,6 +750,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 <div class="split-view" id="view-split"></div>
 <div id="split-sum-row"></div>
 <div class="view" id="view-activity"></div>
+<div class="view" id="view-secured"></div>
 
 <!-- FLOATING DREAM BUTTON -->
 <button class="ms-fab" id="ms-fab">
@@ -1940,6 +1980,118 @@ function updateProgressBars(){
   g("pb-sv", (cSv<0?"−":"+") + sh(Math.abs(cSv))+" saved");
 }
 
+/* ── SECURED TAB ── */
+let secUnsub = null;
+
+function renderSecured(container){
+  container.innerHTML = "";
+  if(!currentUser) return;
+
+  const dbPath = `af/${cy}/${String(cm+1).padStart(2,"0")}/secured`;
+
+  if(secUnsub) secUnsub();
+  secUnsub = onValue(ref(db, dbPath), snap => {
+    const secData = snap.val() || {};
+    container.innerHTML = "";
+
+    const allExp = EXPENSES;
+    const totalCount = allExp.length;
+    const securedCount = allExp.filter(e => secData[e.id]).length;
+    const allSecured = securedCount === totalCount;
+
+    // Header summary banner
+    const hdr = document.createElement("div"); hdr.className = "sec-header";
+    hdr.innerHTML = `
+      <div class="sec-header-left">
+        <div class="sec-header-title">🔒 Secured in Account</div>
+        <div class="sec-header-sub">Tick when money is transferred & ready</div>
+      </div>
+      <div class="sec-header-pill">
+        <div class="sec-header-pill-val">${securedCount}/${totalCount}</div>
+        <div class="sec-header-pill-lbl">categories</div>
+      </div>`;
+    container.append(hdr);
+
+    // Mark All button
+    const markAllBtn = document.createElement("button");
+    markAllBtn.className = "sec-all-btn" + (allSecured ? " all-secured" : "");
+    markAllBtn.textContent = allSecured ? "✅ All funds secured this month!" : "✓ Mark all as secured";
+    markAllBtn.onclick = async () => {
+      const updates = {};
+      allExp.forEach(e => { updates[`${dbPath}/${e.id}`] = true; });
+      await update(ref(db), updates).catch(()=>{});
+    };
+    container.append(markAllBtn);
+
+    // Asad section
+    ["asad","filza"].forEach(who => {
+      const whoExp = EXPENSES.filter(e => e.who === who);
+      const whoSecured = whoExp.filter(e => secData[e.id]).length;
+
+      const block = document.createElement("div"); block.className = "sec-person-block";
+
+      const phdr = document.createElement("div"); phdr.className = "sec-person-hdr";
+      const pname = document.createElement("div");
+      pname.className = `sec-person-name ${who}`;
+      pname.textContent = (who === "asad" ? "👤 Asad" : "👤 Filza") + "'s Categories";
+      const ptally = document.createElement("div"); ptally.className = "sec-person-tally";
+      ptally.textContent = `${whoSecured}/${whoExp.length} secured`;
+      phdr.append(pname, ptally);
+      block.append(phdr);
+
+      whoExp.forEach(exp => {
+        const isSecured = !!secData[exp.id];
+        const item = document.createElement("div");
+        item.className = "sec-item" + (isSecured ? " secured" : "");
+
+        const icon = document.createElement("div");
+        icon.className = "sec-icon";
+        icon.style.background = exp.bg || "#EDF4EE";
+        icon.textContent = exp.icon || "💳";
+
+        const info = document.createElement("div"); info.className = "sec-info";
+        const nm = document.createElement("div"); nm.className = "sec-name"; nm.textContent = exp.name;
+        const acct = document.createElement("div"); acct.className = "sec-acct";
+        acct.textContent = exp.acct ? `${exp.acct} account` : "";
+        info.append(nm, acct);
+
+        const budget = document.createElement("div"); budget.className = "sec-budget";
+        budget.textContent = fmt(exp.budget);
+
+        const tick = document.createElement("div"); tick.className = "sec-tick";
+        tick.textContent = isSecured ? "✓" : "";
+
+        item.append(icon, info, budget, tick);
+        item.onclick = async () => {
+          const newVal = !isSecured;
+          await update(ref(db, `${dbPath}/${exp.id}`), newVal ? true : null)
+            .catch(()=>{});
+          // log to activity
+          logActivity(
+            "inc",
+            (newVal ? "🔒 Secured: " : "🔓 Unsecured: ") + exp.name,
+            newVal ? "Funds confirmed in account" : "Marked as not yet secured",
+            exp.budget,
+            currentUser
+          );
+        };
+        block.append(item);
+      });
+
+      container.append(block);
+    });
+
+    // Reset button
+    const resetBtn = document.createElement("button"); resetBtn.className = "sec-reset-btn";
+    resetBtn.textContent = "⚠ Reset all secured status for this month";
+    resetBtn.onclick = async () => {
+      if(!confirm("Reset all secured ticks for this month?")) return;
+      await remove(ref(db, dbPath)).catch(()=>{});
+    };
+    container.append(resetBtn);
+  });
+}
+
 /* ── RENDER ALL ── */
 function renderAll() {
   if(!currentUser) return;
@@ -1950,6 +2102,7 @@ function renderAll() {
   else if(currentView==="filza") renderFilza(document.getElementById("view-filza"));
   else if(currentView==="split") renderSplit(document.getElementById("view-split"));
   else if(currentView==="activity") renderActivity(document.getElementById("view-activity"));
+  else if(currentView==="secured")  renderSecured(document.getElementById("view-secured"));
 }
 
 /* ── TABS ── */
