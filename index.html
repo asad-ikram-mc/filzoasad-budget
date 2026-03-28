@@ -122,6 +122,35 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 #sav-svg{width:100%;display:block;overflow:visible;}
 .sav-no-data{text-align:center;padding:2rem;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px;color:var(--sf);}
 
+/* Savings add/withdraw */
+.sav-action-tabs{display:flex;gap:0;margin-top:10px;border-radius:10px;overflow:hidden;border:1px solid var(--br);}
+.sav-action-tab{flex:1;height:34px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;background:var(--panel);color:var(--sf);transition:all .15s;}
+.sav-action-tab.add.on{background:#E2F0E8;color:var(--grn);}
+.sav-action-tab.withdraw.on{background:var(--rosel);color:var(--rose);}
+.sav-action-form{margin-top:8px;padding-top:8px;border-top:1px solid var(--br);}
+.sav-action-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.sav-action-inp{flex:1;height:36px;border:1px solid var(--br);border-radius:9px;padding:0 10px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--panel);color:var(--dk);}
+.sav-action-inp:focus{outline:none;border-color:var(--grnm);}
+.sav-action-inp.withdraw:focus{border-color:var(--rose);}
+.sav-action-note{width:100%;height:34px;border:1px solid var(--br);border-radius:9px;padding:0 10px;font-size:12px;font-family:'DM Sans',sans-serif;background:var(--panel);color:var(--dk);margin-bottom:6px;}
+.sav-action-note:focus{outline:none;border-color:var(--grnm);}
+.sav-action-submit{width:100%;height:36px;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .15s;}
+.sav-action-submit.add{background:var(--grn);color:#EDF8EF;}
+.sav-action-submit.withdraw{background:var(--rose);color:#fff;}
+.sav-action-submit:active{opacity:.85;}
+.sav-txn-section{margin-top:12px;}
+.sav-txn-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--sf);margin-bottom:8px;}
+.sav-txn-item{background:var(--cw);border:1px solid var(--br);border-radius:12px;padding:10px 13px;margin-bottom:6px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 4px var(--sh);}
+.sav-txn-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.sav-txn-icon.add{background:#E2F0E8;}
+.sav-txn-icon.withdraw{background:var(--rosel);}
+.sav-txn-body{flex:1;min-width:0;}
+.sav-txn-name{font-size:12px;font-weight:600;color:var(--dk);}
+.sav-txn-meta{font-size:10px;color:var(--sf);margin-top:1px;}
+.sav-txn-amt{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;flex-shrink:0;}
+.sav-txn-amt.add{color:var(--grn);}
+.sav-txn-amt.withdraw{color:var(--rose);}
+
 .sav-month-table{margin-top:12px;}
 .sav-month-row-hdr{display:grid;grid-template-columns:80px 1fr 1fr 1fr;gap:4px;padding:4px 2px;border-bottom:1px solid var(--br);margin-bottom:4px;}
 .sav-month-row-hdr span{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--sf);}
@@ -2199,56 +2228,153 @@ function renderSavings(container) {
       </div>`;
     container.append(hero);
 
-    // ── ALLOCATION CARDS ──
+    // ── ALLOCATION CARDS (Add / Withdraw) ──
     const allocTitle = document.createElement("div"); allocTitle.className="sav-alloc-title";
-    allocTitle.textContent = "Update Savings Balances";
+    allocTitle.textContent = "Savings Accounts";
     container.append(allocTitle);
 
     SAV_ACCOUNTS.forEach(s => {
-      const val = parseFloat(savData[s.id]?.amount||0)||0;
+      let curVal = parseFloat(savData[s.id]?.amount||0)||0;
       const card = document.createElement("div"); card.className="sav-alloc-card";
 
+      // Header with live balance badge
       const hdr = document.createElement("div"); hdr.className="sav-alloc-hdr";
       const nm = document.createElement("div"); nm.className="sav-alloc-name";
       nm.innerHTML = `<span class="sav-alloc-name-icon">${s.icon}</span>${s.label}`;
       const badge = document.createElement("div");
       badge.className = "sav-alloc-badge " + s.who;
-      badge.textContent = s.cur==="GBP" ? fmtG(val) : fmt(val);
+      badge.textContent = s.cur==="GBP" ? fmtG(curVal) : fmt(curVal);
       hdr.append(nm, badge);
 
       const body = document.createElement("div"); body.className="sav-alloc-body";
 
-      // Current month net for PKR accounts
+      // This month net (PKR only)
       if(s.cur==="PKR") {
-        const inc = s.who==="asad" ? (incRecvd("asad","PKR")||0) : (incRecvd("filza","PKR")||0);
+        const inc   = s.who==="asad" ? (incRecvd("asad","PKR")||0) : (incRecvd("filza","PKR")||0);
         const spent = s.who==="asad" ? expTotal("asad") : expTotal("filza");
-        const net = inc - spent;
+        const net   = inc - spent;
         const r1 = document.createElement("div"); r1.className="sav-alloc-row";
-        r1.innerHTML=`<span class="sav-alloc-lbl">This month's net</span><span class="sav-alloc-val" style="color:${net>=0?"var(--grn)":"var(--rose)"}">${net>=0?"+":"−"}${fmt(Math.abs(net))}</span>`;
+        r1.innerHTML = `<span class="sav-alloc-lbl">This month's net</span><span class="sav-alloc-val" style="color:${net>=0?"var(--grn)":"var(--rose)"}">${net>=0?"+":"−"}${fmt(Math.abs(net))}</span>`;
         body.append(r1);
       }
 
-      // Update input
-      const inputRow = document.createElement("div"); inputRow.className="sav-alloc-input-row";
-      const lbl = document.createElement("span"); lbl.className="sav-alloc-inp-lbl"; lbl.textContent="New balance:";
-      const inp = document.createElement("input"); inp.className="sav-alloc-inp"; inp.type="number"; inp.min="0";
-      inp.placeholder = s.cur==="GBP" ? "e.g. 3200" : "e.g. 250000";
-      inp.value = val||"";
-      const btn = document.createElement("button"); btn.className="sav-alloc-btn"; btn.textContent="Save";
-      btn.onclick = async () => {
-        const nv = parseFloat(inp.value)||0;
-        await update(ref(db,"af/savings/"+s.id),{amount:nv});
-        // Also save to monthly history
+      // Add / Withdraw tab toggle
+      let mode = "add"; // "add" | "withdraw"
+      const tabRow = document.createElement("div"); tabRow.className="sav-action-tabs";
+      const addTab = document.createElement("button"); addTab.className="sav-action-tab add on"; addTab.textContent="➕ Add";
+      const wdTab  = document.createElement("button"); wdTab.className="sav-action-tab withdraw";  wdTab.textContent="💸 Withdraw";
+      tabRow.append(addTab, wdTab);
+
+      // Form
+      const form = document.createElement("div"); form.className="sav-action-form";
+      const amtInp = document.createElement("input"); amtInp.className="sav-action-inp"; amtInp.type="number"; amtInp.min="0";
+      amtInp.placeholder = s.cur==="GBP" ? "Amount (£)" : "Amount (PKR)";
+      const noteInp = document.createElement("input"); noteInp.className="sav-action-note"; noteInp.type="text";
+      noteInp.placeholder = "Reason / note (e.g. Jaecoo fund, Emergency)";
+      noteInp.style.display="none"; // only show for withdraw
+      const submitBtn = document.createElement("button"); submitBtn.className="sav-action-submit add"; submitBtn.textContent="Add to Savings";
+
+      function switchMode(m) {
+        mode = m;
+        addTab.classList.toggle("on", m==="add");
+        wdTab.classList.toggle("on",  m==="withdraw");
+        amtInp.className = "sav-action-inp" + (m==="withdraw"?" withdraw":"");
+        amtInp.placeholder = m==="add"
+          ? (s.cur==="GBP"?"Amount to add (£)":"Amount to add (PKR)")
+          : (s.cur==="GBP"?"Amount to withdraw (£)":"Amount to withdraw (PKR)");
+        noteInp.style.display = m==="withdraw" ? "block" : "none";
+        noteInp.placeholder = "Reason (e.g. Jaecoo fund, Emergency, Visa)";
+        submitBtn.className = "sav-action-submit " + m;
+        submitBtn.textContent = m==="add" ? "Add to Savings" : "Withdraw from Savings";
+      }
+
+      addTab.onclick = () => switchMode("add");
+      wdTab.onclick  = () => switchMode("withdraw");
+
+      submitBtn.onclick = async () => {
+        const amt = parseFloat(amtInp.value)||0;
+        if(!amt) { toast("Enter an amount first"); return; }
+        const note = noteInp.value.trim() || (mode==="withdraw" ? "No reason given" : "");
+        const newBal = mode==="add" ? curVal+amt : Math.max(0, curVal-amt);
+        const diff = mode==="add" ? amt : -(curVal - newBal);
+
+        // Update balance
+        await update(ref(db,"af/savings/"+s.id), {amount:newBal});
+        // Save to monthly history snapshot
         const histKey = `af/savings/history/${cy}_${String(cm+1).padStart(2,"0")}`;
-        await update(ref(db,histKey),{[s.id]:nv, ts:Date.now()});
-        badge.textContent = s.cur==="GBP" ? fmtG(nv) : fmt(nv);
-        toast("Saved ✓");
+        await update(ref(db,histKey), {[s.id]:newBal, ts:Date.now()});
+        // Log transaction
+        const txn = {
+          type: mode,
+          account: s.label,
+          accountId: s.id,
+          amt: amt,
+          note: note,
+          cur: s.cur,
+          balAfter: newBal,
+          who: currentUser,
+          ts: Date.now(),
+          date: new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}),
+          time: new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})
+        };
+        await push(ref(db,"af/savings/transactions"), txn);
+        // Log to activity feed
+        logActivity(
+          mode==="add" ? "inc" : "del",
+          (mode==="add" ? "💰 Saved: " : "💸 Withdrew: ") + (s.cur==="GBP"?fmtG(amt):fmt(amt)) + " → " + s.label,
+          note || (mode==="add" ? "Added to savings" : ""),
+          amt, currentUser
+        );
+
+        curVal = newBal;
+        badge.textContent = s.cur==="GBP" ? fmtG(newBal) : fmt(newBal);
+        amtInp.value = "";
+        noteInp.value = "";
+        toast(mode==="add" ? "✓ Added to savings" : "✓ Withdrawal recorded");
       };
-      inputRow.append(lbl,inp,btn);
-      body.append(inputRow);
-      card.append(hdr,body);
+
+      const amtRow = document.createElement("div"); amtRow.className="sav-action-row";
+      amtRow.append(amtInp);
+      form.append(amtRow, noteInp, submitBtn);
+      body.append(tabRow, form);
+      card.append(hdr, body);
       container.append(card);
     });
+
+    // ── TRANSACTION HISTORY ──
+    const txnTitle = document.createElement("div"); txnTitle.className="sav-txn-title";
+    txnTitle.textContent = "Transaction History";
+    container.append(txnTitle);
+
+    const txnList = document.createElement("div");
+    onValue(ref(db,"af/savings/transactions"), snap => {
+      txnList.innerHTML="";
+      const raw = snap.val()||{};
+      const entries = Object.entries(raw)
+        .map(([k,v])=>({key:k,...v}))
+        .sort((a,b)=>b.ts-a.ts)
+        .slice(0,30);
+      if(!entries.length) {
+        txnList.innerHTML=`<div class="sav-no-data">No transactions yet</div>`;
+        return;
+      }
+      entries.forEach(e => {
+        const item = document.createElement("div"); item.className="sav-txn-item";
+        const ico  = document.createElement("div"); ico.className="sav-txn-icon "+e.type;
+        ico.textContent = e.type==="add" ? "💰" : "💸";
+        const body2 = document.createElement("div"); body2.className="sav-txn-body";
+        const nm2 = document.createElement("div"); nm2.className="sav-txn-name";
+        nm2.textContent = (e.type==="add"?"Added to ":"Withdrew from ") + (e.account||"Savings");
+        const meta = document.createElement("div"); meta.className="sav-txn-meta";
+        meta.textContent = [e.note, e.date, e.time].filter(Boolean).join(" · ");
+        body2.append(nm2, meta);
+        const amt2 = document.createElement("div"); amt2.className="sav-txn-amt "+e.type;
+        amt2.textContent = (e.type==="add"?"+":"−") + (e.cur==="GBP"?fmtG(e.amt):fmt(e.amt));
+        item.append(ico, body2, amt2);
+        txnList.append(item);
+      });
+    }, {onlyOnce:true});
+    container.append(txnList);
 
     // ── LINE GRAPH ──
     const graphTitle = document.createElement("div"); graphTitle.className="sav-graph-title";
