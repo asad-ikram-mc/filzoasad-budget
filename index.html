@@ -1186,39 +1186,96 @@ function makeExpItem(exp, compact) {
 
 /* ── SAVINGS CARD (Home Page) ── */
 function makeSavCard() {
+  const SAV_ACCOUNTS = [
+    {id:"sav_lloyds", label:"🇬🇧 Lloyds UK", who:"uk",    cur:"GBP"},
+    {id:"sav_asad",   label:"🔵 Asad HBL",   who:"asad",  cur:"PKR"},
+    {id:"sav_filza",  label:"🩷 Filza HBL",  who:"filza", cur:"PKR"},
+  ];
+
   const card=document.createElement("div"); card.className="card";
   const hdr=document.createElement("div"); hdr.className="card-hdr";
   const hr=document.createElement("div"); hr.className="card-hdr-row";
-  const ht=document.createElement("div"); ht.className="card-title grn"; ht.textContent="Savings Allocation";
+  const ht=document.createElement("div"); ht.className="card-title grn"; ht.textContent="Savings & Investments";
   hr.append(ht); hdr.append(hr);
   const body=document.createElement("div"); body.className="card-body";
 
-  const SAV_ACCOUNTS = [
-    {id:"sav_lloyds", label:"🇬🇧 Lloyds UK",     who:"uk",    cur:"GBP", placeholder:"GBP amount", note:"Fix.com earnings stay in UK"},
-    {id:"sav_asad",   label:"🔵 Asad — HBL",    who:"asad",  cur:"PKR", placeholder:"PKR amount", note:"Asad's saving allocation"},
-    {id:"sav_filza",  label:"🩷 Filza — HBL",   who:"filza", cur:"PKR", placeholder:"PKR amount", note:"Filza's saving allocation"},
-  ];
-
   SAV_ACCOUNTS.forEach(s => {
-    const val = parseFloat(state.savings?.[s.id]?.amount||0)||0;
+    let curVal = parseFloat(state.savings?.[s.id]?.amount||0)||0;
+
+    // Row: label + balance + add/withdraw buttons
     const si = document.createElement("div"); si.className="sav-item";
     const sl = document.createElement("div");
     const sn = document.createElement("div"); sn.className="sav-name"; sn.textContent=s.label;
-    const snt = document.createElement("div"); snt.className="sav-note"; snt.textContent=s.note;
-    sl.append(sn,snt);
+    sl.append(sn);
     const sr = document.createElement("div"); sr.className="sav-rt";
-    const sa = document.createElement("div"); sa.className="sav-amt"; sa.textContent=(s.cur==="GBP"?fmtG(val):fmt(val));
+    const sa = document.createElement("div"); sa.className="sav-amt";
+    sa.textContent = s.cur==="GBP" ? fmtG(curVal) : fmt(curVal);
     const sc2 = document.createElement("div"); sc2.className="sav-curr"; sc2.textContent=s.cur;
-    const srow = document.createElement("div"); srow.className="sav-row";
-    const sil = document.createElement("span"); sil.className="sav-inp-lbl"; sil.textContent="Update:";
-    const sii = document.createElement("input"); sii.className="sav-inp"; sii.type="number"; sii.min="0"; sii.value=val||""; sii.placeholder=s.cur;
-    sii.onchange = async () => {
-      const nv = parseFloat(sii.value)||0;
-      await update(ref(db,"af/savings/"+s.id),{amount:nv});
-      sa.textContent = (s.cur==="GBP"?fmtG(nv):fmt(nv));
-      toast("Savings updated");
+    sr.append(sa, sc2);
+    si.append(sl, sr);
+    body.append(si);
+
+    // Tab toggle (Add / Withdraw)
+    let mode = "add";
+    const tabRow = document.createElement("div"); tabRow.className="sav-action-tabs"; tabRow.style.marginBottom="8px";
+    const addTab = document.createElement("button"); addTab.className="sav-action-tab add on"; addTab.textContent="➕ Add";
+    const wdTab  = document.createElement("button"); wdTab.className="sav-action-tab withdraw";  wdTab.textContent="💸 Withdraw";
+    tabRow.append(addTab, wdTab);
+
+    const amtInp  = document.createElement("input"); amtInp.className="sav-action-inp"; amtInp.type="number"; amtInp.min="0";
+    amtInp.placeholder = s.cur==="GBP" ? "Amount (£)" : "Amount (PKR)";
+    const noteInp = document.createElement("input"); noteInp.className="sav-action-note"; noteInp.type="text";
+    noteInp.placeholder="Reason (e.g. Jaecoo, Emergency, Visa)";
+    noteInp.style.display="none";
+    const submitBtn = document.createElement("button"); submitBtn.className="sav-action-submit add"; submitBtn.textContent="Add to Savings";
+
+    function switchMode(m) {
+      mode = m;
+      addTab.classList.toggle("on", m==="add");
+      wdTab.classList.toggle("on",  m==="withdraw");
+      amtInp.className = "sav-action-inp"+(m==="withdraw"?" withdraw":"");
+      noteInp.style.display = m==="withdraw" ? "block" : "none";
+      submitBtn.className = "sav-action-submit "+m;
+      submitBtn.textContent = m==="add" ? "Add to Savings" : "Withdraw from Savings";
+    }
+    addTab.onclick = ()=>switchMode("add");
+    wdTab.onclick  = ()=>switchMode("withdraw");
+
+    submitBtn.onclick = async () => {
+      const amt = parseFloat(amtInp.value)||0;
+      if(!amt){ toast("Enter an amount first"); return; }
+      const note = noteInp.value.trim() || (mode==="withdraw"?"No reason given":"");
+      const newBal = mode==="add" ? curVal+amt : Math.max(0, curVal-amt);
+      await update(ref(db,"af/savings/"+s.id), {amount:newBal});
+      const histKey = `af/savings/history/${cy}_${String(cm+1).padStart(2,"0")}`;
+      await update(ref(db,histKey), {[s.id]:newBal, ts:Date.now()});
+      await push(ref(db,"af/savings/transactions"), {
+        type:mode, account:s.label, accountId:s.id,
+        amt, note, cur:s.cur, balAfter:newBal, who:currentUser,
+        ts:Date.now(),
+        date:new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}),
+        time:new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})
+      });
+      logActivity(
+        mode==="add"?"inc":"del",
+        (mode==="add"?"💰 Saved: ":"💸 Withdrew: ")+(s.cur==="GBP"?fmtG(amt):fmt(amt))+" → "+s.label,
+        note||(mode==="add"?"Added to savings":""),
+        amt, currentUser
+      );
+      curVal = newBal;
+      sa.textContent = s.cur==="GBP" ? fmtG(newBal) : fmt(newBal);
+      amtInp.value=""; noteInp.value="";
+      toast(mode==="add"?"✓ Added to savings":"✓ Withdrawal recorded");
     };
-    srow.append(sil,sii); sr.append(sa,sc2,srow); si.append(sl,sr); body.append(si);
+
+    const form = document.createElement("div"); form.className="sav-action-form";
+    const amtRow = document.createElement("div"); amtRow.className="sav-action-row"; amtRow.append(amtInp);
+    form.append(amtRow, noteInp, submitBtn);
+
+    // Divider between accounts
+    const wrap = document.createElement("div"); wrap.style.cssText="padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--br);";
+    wrap.append(tabRow, form);
+    body.append(wrap);
   });
 
   card.append(hdr,body); return card;
