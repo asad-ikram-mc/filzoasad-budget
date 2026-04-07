@@ -1368,16 +1368,14 @@ function makeAcctCard(who) {
 /* ── EXPENSE CHART ── */
 function makeExpenseChart(who, accentColor) {
   const exps = EXPENSES.filter(e=>e.who===who);
+  const MONTHS_SHORT=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  // items array — mutated when month changes
   const items = exps.map(e=>({
-    name: e.name,
-    icon: e.icon,
-    budget: e.budget,
-    spent: totalSpent(e.id),
-    color: e.bg||"#E8EEE9",
+    name: e.name, icon: e.icon, budget: e.budget,
+    spent: totalSpent(e.id), color: e.bg||"#E8EEE9",
   }));
   const totalBudget = items.reduce((s,e)=>s+e.budget,0);
-  const totalSpent2 = items.reduce((s,e)=>s+e.spent,0);
-  const overallPct  = totalBudget>0?Math.round(totalSpent2/totalBudget*100):0;
 
   const wrap = document.createElement("div"); wrap.className="exp-chart-wrap";
 
@@ -1386,51 +1384,91 @@ function makeExpenseChart(who, accentColor) {
   const ttl = document.createElement("div"); ttl.className="exp-chart-title";
   ttl.textContent = "Spending Breakdown";
   const bdg = document.createElement("div"); bdg.className="exp-chart-badge";
-  bdg.textContent = overallPct+"%  of budget used";
-  bdg.style.background = overallPct>=100?"var(--rosel)":overallPct>=80?"var(--ambl)":"var(--grnl)";
-  bdg.style.color = overallPct>=100?"var(--rose)":overallPct>=80?"var(--amber)":"var(--grn)";
+  function refreshBadge(){
+    const sp=items.reduce((s,e)=>s+e.spent,0);
+    const pct=totalBudget>0?Math.round(sp/totalBudget*100):0;
+    bdg.textContent=pct+"% of budget used";
+    bdg.style.background=pct>=100?"var(--rosel)":pct>=80?"var(--ambl)":"var(--grnl)";
+    bdg.style.color=pct>=100?"var(--rose)":pct>=80?"var(--amber)":"var(--grn)";
+    return pct;
+  }
+  refreshBadge();
   tr.append(ttl,bdg); wrap.append(tr);
 
-  // Inline month navigator for expense chart
-  const MONTHS_SHORT=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  let chartCm=cm, chartCy=cy; // local month state for the chart
+  // Time filter row: This Month | Month nav | All Time
+  let expMode="month"; // "month" | "alltime"
+  let chartCm=cm, chartCy=cy;
+
+  const timeFilterRow=document.createElement("div"); timeFilterRow.className="chart-filter-row";
+  const monthModeBtn=document.createElement("button"); monthModeBtn.className="chart-fchip on"; monthModeBtn.textContent="📅 Monthly"; monthModeBtn.dataset.f="month";
+  const allTimeModeBtn=document.createElement("button"); allTimeModeBtn.className="chart-fchip"; allTimeModeBtn.textContent="🗓 All Time"; allTimeModeBtn.dataset.f="alltime";
+  timeFilterRow.append(monthModeBtn,allTimeModeBtn);
+  wrap.append(timeFilterRow);
+
+  // Month navigator (hidden in alltime mode)
   const monthNav=document.createElement("div");
   monthNav.style.cssText="display:flex;align-items:center;gap:8px;margin-bottom:8px;";
   const prevBtn=document.createElement("button");
   prevBtn.style.cssText="width:28px;height:28px;border-radius:50%;border:1px solid var(--br);background:var(--panel);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;";
   prevBtn.textContent="‹";
   const nextBtn=document.createElement("button");
-  nextBtn.style.cssText=prevBtn.style.cssText;
-  nextBtn.textContent="›";
+  nextBtn.style.cssText=prevBtn.style.cssText; nextBtn.textContent="›";
   const monthLbl=document.createElement("div");
   monthLbl.style.cssText="flex:1;text-align:center;font-size:11px;font-weight:600;color:var(--sf);";
-  function updateExpChart(){
-    monthLbl.textContent=MONTHS_SHORT[chartCm]+" "+chartCy;
-    // Re-read expense data for the selected month from state
-    // Since state is tied to cm/cy, we need to fetch from Firebase
-    get(ref(db,"af/"+chartCy+"/"+String(chartCm+1).padStart(2,"0"))).then(snap=>{
-      const mstate=snap.val()||{};
-      // Update items with new month data
-      items.forEach(it=>{
-        const logs=mstate.expenses?.[it.id]||{};
-        it.spent=Object.values(logs).reduce((s,e)=>s+(e.amt||0),0);
-      });
-      const newTotal=items.reduce((s,e)=>s+e.spent,0);
-      const newBudget=items.reduce((s,e)=>s+e.budget,0);
-      const newPct=newBudget>0?Math.round(newTotal/newBudget*100):0;
-      bdg.textContent=newPct+"% of budget used";
-      bdg.style.background=newPct>=100?"var(--rosel)":newPct>=80?"var(--ambl)":"var(--grnl)";
-      bdg.style.color=newPct>=100?"var(--rose)":newPct>=80?"var(--amber)":"var(--grn)";
-      draw();
-    }).catch(()=>{});
-  }
-  prevBtn.onclick=()=>{ chartCm--; if(chartCm<0){chartCm=11;chartCy--;} updateExpChart(); };
-  nextBtn.onclick=()=>{ chartCm++; if(chartCm>11){chartCm=0;chartCy++;} updateExpChart(); };
   monthLbl.textContent=MONTHS_SHORT[chartCm]+" "+chartCy;
   monthNav.append(prevBtn,monthLbl,nextBtn);
   wrap.append(monthNav);
 
-  // Filter chips: sort by spent / budget / remaining
+  // Load month data and update items + badge + chart
+  function loadMonthData(mcm, mcy) {
+    get(ref(db,"af/"+mcy+"/"+String(mcm+1).padStart(2,"0"))).then(snap=>{
+      const mstate=snap.val()||{};
+      items.forEach(it=>{
+        const logs=mstate.expenses?.[it.id]||{};
+        it.spent=Object.values(logs).reduce((s,e)=>s+(e.amt||0),0);
+      });
+      refreshBadge(); applySortAndDraw();
+    }).catch(()=>{ items.forEach(it=>it.spent=0); refreshBadge(); applySortAndDraw(); });
+  }
+
+  // Load all-time aggregated data
+  function loadAllTimeData() {
+    get(ref(db,"af")).then(snap=>{
+      const allData=snap.val()||{};
+      // Reset
+      items.forEach(it=>it.spent=0);
+      // Sum across all year/month nodes
+      Object.values(allData).forEach(yearData=>{
+        if(typeof yearData!=="object") return;
+        Object.values(yearData).forEach(monthData=>{
+          if(!monthData?.expenses) return;
+          items.forEach(it=>{
+            const logs=monthData.expenses[it.id]||{};
+            it.spent+=Object.values(logs).reduce((s,e)=>s+(e.amt||0),0);
+          });
+        });
+      });
+      refreshBadge(); applySortAndDraw();
+    }).catch(()=>{});
+  }
+
+  monthModeBtn.onclick=()=>{
+    expMode="month";
+    monthModeBtn.classList.add("on"); allTimeModeBtn.classList.remove("on");
+    monthNav.style.display="flex";
+    loadMonthData(chartCm,chartCy);
+  };
+  allTimeModeBtn.onclick=()=>{
+    expMode="alltime";
+    allTimeModeBtn.classList.add("on"); monthModeBtn.classList.remove("on");
+    monthNav.style.display="none";
+    loadAllTimeData();
+  };
+
+  prevBtn.onclick=()=>{ chartCm--; if(chartCm<0){chartCm=11;chartCy--;} monthLbl.textContent=MONTHS_SHORT[chartCm]+" "+chartCy; loadMonthData(chartCm,chartCy); };
+  nextBtn.onclick=()=>{ chartCm++; if(chartCm>11){chartCm=0;chartCy++;} monthLbl.textContent=MONTHS_SHORT[chartCm]+" "+chartCy; loadMonthData(chartCm,chartCy); };
+
+  // Filter chips: sort
   let expSort="spent";
   const expFilterRow=document.createElement("div"); expFilterRow.className="chart-filter-row";
   [{id:"spent",label:"By Spent"},{id:"budget",label:"By Budget"},{id:"remaining",label:"By Remaining"},{id:"pct",label:"By %"}].forEach(f=>{
@@ -1439,13 +1477,12 @@ function makeExpenseChart(who, accentColor) {
     btn.onclick=()=>{
       expSort=f.id;
       expFilterRow.querySelectorAll(".chart-fchip").forEach(b=>b.classList.toggle("on",b.dataset.f===f.id));
-      // Re-sort items
-      if(expSort==="spent")      items.sort((a,b)=>b.spent-a.spent);
-      else if(expSort==="budget") items.sort((a,b)=>b.budget-a.budget);
+      if(expSort==="spent")          items.sort((a,b)=>b.spent-a.spent);
+      else if(expSort==="budget")    items.sort((a,b)=>b.budget-a.budget);
       else if(expSort==="remaining") items.sort((a,b)=>(a.budget-a.spent)-(b.budget-b.spent));
       else if(expSort==="pct")    items.sort((a,b)=>(b.spent/b.budget)-(a.spent/a.budget));
       items.forEach((it,i)=>{ it.fillColor=PALETTE[i%PALETTE.length]; });
-      draw();
+      applySortAndDraw();
     };
     expFilterRow.append(btn);
   });
@@ -1463,6 +1500,15 @@ function makeExpenseChart(who, accentColor) {
   // Colours per category (generated from bg)
   const PALETTE=["#2A7A50","#4A90D0","#C04888","#C09030","#7B6FD0","#D05A30","#30A8A0","#8A6AD0","#D0904A","#50A870"];
   items.forEach((it,i)=>{ it.fillColor=PALETTE[i%PALETTE.length]; });
+
+  function applySortAndDraw(){
+    if(expSort==="spent")          items.sort((a,b)=>b.spent-a.spent);
+    else if(expSort==="budget")    items.sort((a,b)=>b.budget-a.budget);
+    else if(expSort==="remaining") items.sort((a,b)=>(a.budget-a.spent)-(b.budget-b.spent));
+    else if(expSort==="pct")       items.sort((a,b)=>(b.spent/b.budget)-(a.spent/a.budget));
+    items.forEach((it,i)=>{ it.fillColor=PALETTE[i%PALETTE.length]; });
+    draw();
+  }
 
   function draw(hoverIdx=-1){
     const ctx=canvas.getContext("2d");
@@ -1513,11 +1559,13 @@ function makeExpenseChart(who, accentColor) {
       angle+=slice;
     });
 
-    // Centre text
+    // Centre text — live computed
+    const _liveSp=items.reduce((s,e)=>s+e.spent,0);
+    const _livePct=totalBudget>0?Math.round(_liveSp/totalBudget*100):0;
     ctx.textAlign="center";
-    ctx.fillStyle = overallPct>=100?"#A83858":overallPct>=80?"#886010":"#2A5438";
+    ctx.fillStyle = _livePct>=100?"#A83858":_livePct>=80?"#886010":"#2A5438";
     ctx.font=`bold 20px 'Cormorant Garamond',serif`;
-    ctx.fillText(overallPct+"%", cx, cy+2);
+    ctx.fillText(_livePct+"%", cx, cy+2);
     ctx.font=`10px 'DM Sans',sans-serif`;
     ctx.fillStyle="rgba(60,80,60,0.5)";
     ctx.fillText("used", cx, cy+16);
