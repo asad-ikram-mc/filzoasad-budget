@@ -1050,6 +1050,69 @@ const MILESTONES = [
    savKey:"pak_sav"},
 ];
 
+/* ── SOUND ENGINE ── */
+const SFX = {
+  // All sounds synthesised with Web Audio API — no files needed
+  _ctx: null,
+  _get() { if(!this._ctx) this._ctx=new(window.AudioContext||window.webkitAudioContext)(); return this._ctx; },
+
+  // 🌟 Dream hope — soft rising chime (C maj arpeggio)
+  dream() {
+    const ctx=this._get(); const t=ctx.currentTime;
+    [523.25,659.25,783.99,1046.5].forEach((f,i)=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.type="sine"; o.frequency.value=f;
+      g.gain.setValueAtTime(0,t+i*0.12);
+      g.gain.linearRampToValueAtTime(0.18,t+i*0.12+0.04);
+      g.gain.exponentialRampToValueAtTime(0.001,t+i*0.12+0.55);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t+i*0.12); o.stop(t+i*0.12+0.6);
+    });
+  },
+
+  // 🎉 Celebration — bright fanfare (income received / saving added)
+  celebrate() {
+    const ctx=this._get(); const t=ctx.currentTime;
+    // Base chord burst
+    [261.63,329.63,392,523.25].forEach((f,i)=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.type="triangle"; o.frequency.value=f;
+      g.gain.setValueAtTime(0.15,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.5);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t); o.stop(t+0.55);
+    });
+    // Rising sparkle
+    [784,1047,1319].forEach((f,i)=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.type="sine"; o.frequency.value=f;
+      g.gain.setValueAtTime(0,t+0.15+i*0.08);
+      g.gain.linearRampToValueAtTime(0.12,t+0.15+i*0.08+0.03);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.15+i*0.08+0.4);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t+0.15+i*0.08); o.stop(t+0.15+i*0.08+0.45);
+    });
+  },
+
+  // 💸 Loss — descending thud (withdrawal)
+  loss() {
+    const ctx=this._get(); const t=ctx.currentTime;
+    // Low descending tone
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type="sawtooth";
+    o.frequency.setValueAtTime(220,t);
+    o.frequency.exponentialRampToValueAtTime(80,t+0.4);
+    g.gain.setValueAtTime(0.18,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.45);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t); o.stop(t+0.5);
+    // Thud
+    const o2=ctx.createOscillator(), g2=ctx.createGain();
+    o2.type="sine"; o2.frequency.setValueAtTime(120,t); o2.frequency.exponentialRampToValueAtTime(40,t+0.25);
+    g2.gain.setValueAtTime(0.25,t); g2.gain.exponentialRampToValueAtTime(0.001,t+0.3);
+    o2.connect(g2); g2.connect(ctx.destination);
+    o2.start(t); o2.stop(t+0.35);
+  }
+};
+
 /* ── GBP → PKR RATE ── */
 // Live rate fetched once on load; fallback to 350 if offline
 let GBP_TO_PKR = 350;
@@ -1148,7 +1211,7 @@ function makeIncItem(src) {
     const prev=rcvd;
     const prevAmt=d.actual||"";
     await update(ref(db,dbp("income",src.id)),{received:!rcvd});
-    logActivity("inc", (!rcvd?"Received: ":"Unmarked: ")+src.name, src.cur==="GBP"?fmtG(src.exp):fmt(src.exp), 0, currentUser);
+    if(!rcvd) SFX.celebrate(); logActivity("inc", (!rcvd?"Received: ":"Unmarked: ")+src.name, src.cur==="GBP"?fmtG(src.exp):fmt(src.exp), 0, currentUser);
     pushUndo(((!rcvd)?"Marked received":"Unmarked: ")+src.name, async()=>{
       await update(ref(db,dbp("income",src.id)),{received:prev,actual:prevAmt});
     });
@@ -1330,6 +1393,7 @@ function makeSavCard() {
       curVal = newBal;
       sa.textContent = s.cur==="GBP" ? fmtG(newBal) : fmt(newBal);
       amtInp.value=""; noteInp.value="";
+      if(mode==="add") SFX.celebrate(); else SFX.loss();
       toast(mode==="add"?"✓ Added to savings":"✓ Withdrawal recorded");
     };
 
@@ -2895,6 +2959,7 @@ function renderSavings(container) {
         curVal = newBal;
         badge.textContent = s.cur==="GBP" ? fmtG(newBal) : fmt(newBal);
         amtInp.value = ""; noteInp.value = "";
+        if(mode==="add") SFX.celebrate(); else SFX.loss();
         toast((mode==="add"?"✓ Added ":"✓ Withdrew ")+(s.cur==="GBP"?fmtG(amt):fmt(amt))+(mode==="add"?" to ":" from ")+s.label+". Balance: "+(s.cur==="GBP"?fmtG(newBal):fmt(newBal)));
       };
 
@@ -3081,17 +3146,15 @@ function renderSavings(container) {
         ctx.beginPath(); ctx.strokeStyle="rgba(192,144,48,0.2)"; ctx.lineWidth=1;
         ctx.moveTo(CW-PR,PT); ctx.lineTo(CW-PR,PT+gH); ctx.stroke();
 
-        // Dream milestone lines
+        // Dream milestone lines (no icons — clean graph)
         MILESTONES.forEach(ms=>{
-          if(ms.cur!=="PKR") return;
-          const ty=yP(ms.cost);
+          const costP = ms.cur==="GBP" ? ms.cost*GBP_TO_PKR : ms.cost;
+          const ty=yP(costP);
           if(ty<PT-2||ty>PT+gH+2) return;
           ctx.beginPath(); ctx.setLineDash([4,5]);
-          ctx.strokeStyle="rgba(200,168,60,0.28)"; ctx.lineWidth=1;
+          ctx.strokeStyle="rgba(200,168,60,0.22)"; ctx.lineWidth=1;
           ctx.moveTo(PL,ty); ctx.lineTo(CW-PR,ty); ctx.stroke();
           ctx.setLineDash([]);
-          ctx.font="14px serif"; ctx.textAlign="left";
-          ctx.fillText(ms.icon, CW-PR+4, ty+5);
         });
         ctx.setLineDash([]);
 
@@ -3261,7 +3324,7 @@ document.getElementById("prev").onclick=()=>{cm--;if(cm<0){cm=11;cy--;}openCats.
 document.getElementById("next").onclick=()=>{cm++;if(cm>11){cm=0;cy++;}openCats.clear();subscribe();};
 
 /* wire up milestone buttons inside module so no scope issues */
-document.getElementById("ms-fab").addEventListener("click", openMilestones);
+document.getElementById("ms-fab").addEventListener("click", ()=>{ SFX.dream(); openMilestones(); });
 document.getElementById("ms-popup").addEventListener("click", function(e){ if(e.target===this) closeMilestones(); });
 document.getElementById("ms-detail").addEventListener("click", function(e){ if(e.target===this) closeMsDetail(); });
 document.querySelector(".ms-pop-close").addEventListener("click", closeMilestones);
