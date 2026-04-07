@@ -169,6 +169,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 .sav-month-row span:first-child{color:var(--sf);font-weight:600;}
 .sav-month-row span.pos{color:var(--grn);font-weight:600;}
 .sav-month-row span.neg{color:var(--rose);font-weight:600;}
+/* Filter chips */
+.chart-filter-row{display:flex;gap:5px;margin-bottom:10px;overflow-x:auto;scrollbar-width:none;}
+.chart-filter-row::-webkit-scrollbar{display:none;}
+.chart-fchip{flex-shrink:0;height:26px;padding:0 11px;border:1px solid var(--br);border-radius:20px;background:var(--cw);color:var(--sf);font-size:10px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.chart-fchip.on{background:var(--grn);border-color:var(--grn);color:#EDF8EF;}
 
 /* ── EXPENSE CHART ── */
 .exp-chart-wrap{background:var(--cw);border:1px solid var(--br);border-radius:16px;padding:14px;box-shadow:0 1px 6px var(--sh);margin-bottom:10px;position:relative;}
@@ -1296,7 +1301,9 @@ function makeSavCard() {
       const amt = parseFloat(amtInp.value)||0;
       if(!amt){ toast("Enter an amount first"); return; }
       const note = noteInp.value.trim() || (mode==="withdraw"?"No reason given":"");
-      const newBal = mode==="add" ? curVal+amt : Math.max(0, curVal-amt);
+      const freshSnap = await get(ref(db,"af/savings/"+s.id));
+      const freshBal  = parseFloat(freshSnap.val()?.amount||0)||0;
+      const newBal = mode==="add" ? freshBal+amt : Math.max(0, freshBal-amt);
       await update(ref(db,"af/savings/"+s.id), {amount:newBal});
       const histKey = `af/savings/history/${cy}_${String(cm+1).padStart(2,"0")}`;
       await update(ref(db,histKey), {[s.id]:newBal, ts:Date.now()});
@@ -1384,9 +1391,30 @@ function makeExpenseChart(who, accentColor) {
   bdg.style.color = overallPct>=100?"var(--rose)":overallPct>=80?"var(--amber)":"var(--grn)";
   tr.append(ttl,bdg); wrap.append(tr);
 
-  // Canvas
+  // Filter chips: sort by spent / budget / remaining
+  let expSort="spent";
+  const expFilterRow=document.createElement("div"); expFilterRow.className="chart-filter-row";
+  [{id:"spent",label:"By Spent"},{id:"budget",label:"By Budget"},{id:"remaining",label:"By Remaining"},{id:"pct",label:"By %"}].forEach(f=>{
+    const btn=document.createElement("button"); btn.className="chart-fchip"+(expSort===f.id?" on":"");
+    btn.textContent=f.label; btn.dataset.f=f.id;
+    btn.onclick=()=>{
+      expSort=f.id;
+      expFilterRow.querySelectorAll(".chart-fchip").forEach(b=>b.classList.toggle("on",b.dataset.f===f.id));
+      // Re-sort items
+      if(expSort==="spent")      items.sort((a,b)=>b.spent-a.spent);
+      else if(expSort==="budget") items.sort((a,b)=>b.budget-a.budget);
+      else if(expSort==="remaining") items.sort((a,b)=>(a.budget-a.spent)-(b.budget-b.spent));
+      else if(expSort==="pct")    items.sort((a,b)=>(b.spent/b.budget)-(a.spent/a.budget));
+      items.forEach((it,i)=>{ it.fillColor=PALETTE[i%PALETTE.length]; });
+      draw();
+    };
+    expFilterRow.append(btn);
+  });
+  wrap.append(expFilterRow);
+
+  // Canvas — responsive
   const DPR = window.devicePixelRatio||1;
-  const CW=360, CH=220;
+  const CW=Math.min(380,(wrap.offsetWidth||340)-28), CH=230;
   const canvas = document.createElement("canvas"); canvas.className="exp-chart-canvas";
   canvas.width=CW*DPR; canvas.height=CH*DPR;
   canvas.style.width=CW+"px"; canvas.style.height=CH+"px";
@@ -2631,8 +2659,9 @@ function renderSavings(container) {
         const amt = parseFloat(amtInp.value)||0;
         if(!amt) { toast("Enter an amount first"); return; }
         const note = noteInp.value.trim() || (mode==="withdraw" ? "No reason given" : "");
-        const newBal = mode==="add" ? curVal+amt : Math.max(0, curVal-amt);
-        const diff = mode==="add" ? amt : -(curVal - newBal);
+        const freshSnap = await get(ref(db,"af/savings/"+s.id));
+        const freshBal  = parseFloat(freshSnap.val()?.amount||0)||0;
+        const newBal = mode==="add" ? freshBal+amt : Math.max(0, freshBal-amt);
 
         // Update balance
         await update(ref(db,"af/savings/"+s.id), {amount:newBal});
@@ -2664,9 +2693,8 @@ function renderSavings(container) {
 
         curVal = newBal;
         badge.textContent = s.cur==="GBP" ? fmtG(newBal) : fmt(newBal);
-        amtInp.value = "";
-        noteInp.value = "";
-        toast(mode==="add" ? "✓ Added to savings" : "✓ Withdrawal recorded");
+        amtInp.value = ""; noteInp.value = "";
+        toast((mode==="add"?"✓ Added ":"✓ Withdrew ")+(s.cur==="GBP"?fmtG(amt):fmt(amt))+(mode==="add"?" to ":" from ")+s.label+". Balance: "+(s.cur==="GBP"?fmtG(newBal):fmt(newBal)));
       };
 
       const amtRow = document.createElement("div"); amtRow.className="sav-action-row";
@@ -2717,16 +2745,32 @@ function renderSavings(container) {
     graphTitle.textContent = "📈 Savings Over Time";
     container.append(graphTitle);
 
+    const MON_NAMES=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
     // Build history — inject current month live values
     const history = savData.history||{};
     const curMonKey = `${cy}_${String(cm+1).padStart(2,"0")}`;
-    const histWithCurrent = Object.assign({}, history, {
+    const histFull = Object.assign({}, history, {
       [curMonKey]: { sav_asad:asadCur, sav_filza:filzaCur, sav_lloyds:lloydsCur, ts:Date.now() }
     });
-    const months = Object.keys(histWithCurrent).sort();
-    const MON_NAMES=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const allMonths = Object.keys(histFull).sort();
 
     const chartOuter = document.createElement("div"); chartOuter.className="sav-chart-outer";
+
+    // Filter chips
+    let savFilter="month";
+    const filterRow = document.createElement("div"); filterRow.className="chart-filter-row";
+    [{id:"month",label:"Monthly"},{id:"year",label:"Yearly"},{id:"all",label:"All Time"}].forEach(f=>{
+      const btn=document.createElement("button"); btn.className="chart-fchip"+(savFilter===f.id?" on":"");
+      btn.textContent=f.label; btn.dataset.f=f.id;
+      btn.onclick=()=>{
+        savFilter=f.id;
+        filterRow.querySelectorAll(".chart-fchip").forEach(b=>b.classList.toggle("on",b.dataset.f===f.id));
+        rebuildSavChart();
+      };
+      filterRow.append(btn);
+    });
+    chartOuter.append(filterRow);
 
     // Legend
     const leg = document.createElement("div"); leg.className="sav-graph-legend";
@@ -2735,21 +2779,42 @@ function renderSavings(container) {
     });
     chartOuter.append(leg);
 
-    if(months.length < 1) {
-      const nd = document.createElement("div"); nd.className="sav-no-data";
-      nd.textContent = "Enter your savings balances above to see the graph.";
-      chartOuter.append(nd);
-    } else {
-      const asadVals  = months.map(m=>parseFloat(histWithCurrent[m]?.sav_asad||0));
-      const filzaVals = months.map(m=>parseFloat(histWithCurrent[m]?.sav_filza||0));
-      const totalVals = months.map(m=>asadVals[months.indexOf(m)]+filzaVals[months.indexOf(m)]);
-      const lloydVals = months.map(m=>parseFloat(histWithCurrent[m]?.sav_lloyds||0));
+    const canvasWrap = document.createElement("div"); canvasWrap.style.position="relative";
+    const tblWrap    = document.createElement("div");
+    chartOuter.append(canvasWrap, tblWrap);
+
+    function getFilteredData() {
+      let months = allMonths;
+      const now = new Date();
+      if(savFilter==="month") {
+        // Last 12 months
+        months = allMonths.slice(-12);
+      } else if(savFilter==="year") {
+        // One point per year — use last month of each year
+        const byYear={};
+        allMonths.forEach(m=>{ const y=m.split("_")[0]; byYear[y]=m; });
+        months = Object.values(byYear).sort();
+      }
+      // "all" = all months
+      return months;
+    }
+
+    function rebuildSavChart() {
+      canvasWrap.innerHTML=""; tblWrap.innerHTML="";
+      const months = getFilteredData();
+      if(!months.length){
+        canvasWrap.innerHTML=`<div class="sav-no-data">Enter savings balances to see the graph.</div>`; return;
+      }
+      const asadVals  = months.map(m=>parseFloat(histFull[m]?.sav_asad||0));
+      const filzaVals = months.map(m=>parseFloat(histFull[m]?.sav_filza||0));
+      const totalVals = months.map((_,i)=>asadVals[i]+filzaVals[i]);
+      const lloydVals = months.map(m=>parseFloat(histFull[m]?.sav_lloyds||0));
       const n = months.length;
 
-      // Canvas
+      // Canvas — responsive width
       const canvas = document.createElement("canvas"); canvas.className="sav-chart-canvas";
       const DPR = window.devicePixelRatio||1;
-      const CW = 420, CH = 240;
+      const CW = Math.min(420, (chartOuter.offsetWidth||360)-28), CH = 230;
       canvas.width  = CW * DPR;
       canvas.height = CH * DPR;
       canvas.style.width  = CW+"px";
@@ -2769,6 +2834,7 @@ function renderSavings(container) {
         const maxGBP = Math.max(...lloydVals,1);
 
         function xP(i){ return PL+(n<=1?gW/2:(i/(n-1))*gW); }
+        function xLbl(m){ const p=m.split('_'); return MON_NAMES[(parseInt(p[1]||1)-1)]+"'"+(p[0]||"").slice(2); }
         function yP(v){ return PT+gH-(v/maxPKR)*gH; }
         function yG(v){ return PT+gH-(v/maxGBP)*gH; }
         function fmtV(v){ return v>=100000?(v/100000).toFixed(1).replace(/\.0$/,"")+"L":v>=1000?Math.round(v/1000)+"K":String(Math.round(v)); }
@@ -2793,10 +2859,11 @@ function renderSavings(container) {
 
         // X axis labels
         ctx.fillStyle="rgba(60,80,60,0.5)"; ctx.textAlign="center";
+        // Show fewer labels if crowded
+        const step=n>10?Math.ceil(n/8):1;
         months.forEach((m,i)=>{
-          const parts=m.split("_");
-          const lbl=MON_NAMES[(parseInt(parts[1]||1)-1)]||"";
-          ctx.fillText(lbl+" '"+(parts[0]||"").slice(2), xP(i), CH-8);
+          if(i%step!==0&&i!==n-1) return;
+          ctx.fillText(xLbl(m), xP(i), CH-8);
         });
 
         // Axis lines
@@ -2915,9 +2982,9 @@ function renderSavings(container) {
           <div class="sav-chart-tooltip-row"><div class="sav-chart-tooltip-dot" style="background:#C09030"></div>Lloyds<span class="sav-chart-tooltip-val">£${Math.round(l).toLocaleString()}</span></div>`;
 
         // Position tooltip
-        const tx = xP(best) > CW*0.6 ? xP(best)-155 : xP(best)+12;
+        const tx = xP(best) > CW*0.6 ? xP(best)-162 : xP(best)+10;
         tooltip.style.left = tx+"px";
-        tooltip.style.top  = "40px";
+        tooltip.style.top  = "50px";
         tooltip.style.opacity = "1";
       }
       function onPointerLeave(){ tooltip.style.opacity=0; drawChart(); }
@@ -2927,7 +2994,7 @@ function renderSavings(container) {
       canvas.addEventListener("mouseleave", onPointerLeave);
       canvas.addEventListener("touchend",   onPointerLeave);
 
-      chartOuter.append(canvas, tooltip);
+      canvasWrap.append(canvas, tooltip);
 
       // Month-by-month table
       const tbl=document.createElement("div"); tbl.className="sav-month-table"; tbl.style.marginTop="12px";
@@ -2935,14 +3002,15 @@ function renderSavings(container) {
       [...months].reverse().forEach(m=>{
         const parts=m.split("_");
         const monName=(MON_NAMES[(parseInt(parts[1]||1)-1)]||"")+" "+(parts[0]||"").slice(2);
-        const a=parseFloat(histWithCurrent[m]?.sav_asad||0), f=parseFloat(histWithCurrent[m]?.sav_filza||0), t=a+f;
+        const a=parseFloat(histFull[m]?.sav_asad||0), f=parseFloat(histFull[m]?.sav_filza||0), t=a+f;
         const row=document.createElement("div"); row.className="sav-month-row";
         row.innerHTML=`<span>${monName}</span><span class="pos">${fmt(a)}</span><span class="pos">${fmt(f)}</span><span class="pos">${fmt(t)}</span>`;
         tbl.append(row);
       });
-      chartOuter.append(tbl);
-    }
+      tblWrap.append(tbl);
+    } // end rebuildSavChart
 
+    rebuildSavChart();
     container.append(chartOuter);
   }, {onlyOnce:true});
 }
