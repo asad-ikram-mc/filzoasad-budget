@@ -1050,6 +1050,13 @@ const MILESTONES = [
    savKey:"pak_sav"},
 ];
 
+/* ── GBP → PKR RATE ── */
+// Live rate fetched once on load; fallback to 350 if offline
+let GBP_TO_PKR = 350;
+fetch("https://open.er-api.com/v6/latest/GBP")
+  .then(r=>r.json()).then(d=>{ if(d?.rates?.PKR) GBP_TO_PKR=d.rates.PKR; })
+  .catch(()=>{});
+
 /* ── FIREBASE ── */
 function subscribe() {
   if(!currentUser) return;
@@ -1964,16 +1971,37 @@ function renderMsGrid() {
   const grid=document.getElementById("ms-grid");
   if(!grid) return;
   grid.innerHTML="";
-  const pakSav=getSav("pak_sav"), lloydsSav=getSav("lloyds");
-  const totalPKR=incRecvd("asad","PKR")+incRecvd("filza","PKR");
-  const totalSp=expTotal("asad")+expTotal("filza");
-  const monthlyNet=totalPKR-totalSp;
+
+  // Use real transaction-based balances
+  get(ref(db,"af/savings")).then(snap=>{
+    const savData2=snap.val()||{};
+    const txns2=Object.values(savData2.transactions||{}).sort((a,b)=>(a.ts||0)-(b.ts||0));
+    const rb2={sav_asad:0,sav_filza:0,sav_lloyds:0};
+    txns2.forEach(t=>{ if(!t.accountId) return; if(t.type==="add") rb2[t.accountId]=(rb2[t.accountId]||0)+t.amt; else if(t.type==="withdraw") rb2[t.accountId]=Math.max(0,(rb2[t.accountId]||0)-t.amt); });
+    const asadSav2=rb2.sav_asad, filzaSav2=rb2.sav_filza, lloydsSav2=rb2.sav_lloyds;
+    const totalPKRSav = asadSav2 + filzaSav2 + lloydsSav2*GBP_TO_PKR; // grand total in PKR
+
+    const incPKR=incRecvd("asad","PKR")+incRecvd("filza","PKR");
+    const spPKR=expTotal("asad")+expTotal("filza");
+    const monthlyNet=incPKR-spPKR; // current month net income after expenses
+
+    // Average monthly savings rate from last 2 months of transaction history
+    const hkeys=Object.keys(savData2.history||{}).sort().slice(-3);
+    let avgMonthlySav=monthlyNet;
+    if(hkeys.length>=2){
+      const prev=parseFloat(savData2.history[hkeys[0]]?.sav_asad||0)+parseFloat(savData2.history[hkeys[0]]?.sav_filza||0);
+      const last=parseFloat(savData2.history[hkeys[hkeys.length-1]]?.sav_asad||0)+parseFloat(savData2.history[hkeys[hkeys.length-1]]?.sav_filza||0);
+      avgMonthlySav=Math.max(monthlyNet,(last-prev)/Math.max(1,hkeys.length-1));
+    }
 
   MILESTONES.forEach(ms=>{
-    const sav=ms.cur==="GBP"?lloydsSav:pakSav;
-    const canAfford=sav>=ms.cost;
-    const prog=Math.min(100,Math.round((sav/ms.cost)*100));
-    const monthsAway=monthlyNet>0?Math.ceil((ms.cost-sav)/monthlyNet):null;
+    // All costs in PKR — convert GBP costs using live rate
+    const costPKR = ms.cur==="GBP" ? ms.cost*GBP_TO_PKR : ms.cost;
+    const sav = totalPKRSav; // compare against grand total PKR savings
+    const canAfford=sav>=costPKR;
+    const prog=Math.min(100,Math.round((sav/costPKR)*100));
+    const needed=costPKR-sav;
+    const monthsAway=avgMonthlySav>0&&!canAfford?Math.ceil(needed/avgMonthlySav):null;
     const soon=!canAfford&&monthsAway&&monthsAway<=6;
 
     const card=document.createElement("div");
@@ -1995,48 +2023,82 @@ function renderMsGrid() {
     }
     const nm=document.createElement("div"); nm.className="ms-card-name"; nm.textContent=ms.name;
     const cst=document.createElement("div"); cst.className="ms-card-cost";
-    cst.textContent=(ms.cur==="GBP"?fmtG(ms.cost):"PKR "+Math.round(ms.cost).toLocaleString());
+    // Show cost in PKR always
+    const costPKR2=ms.cur==="GBP"?ms.cost*GBP_TO_PKR:ms.cost;
+    cst.textContent="PKR "+Math.round(costPKR2).toLocaleString()+(ms.cur==="GBP"?" ("+fmtG(ms.cost)+")":"");
     const tag=document.createElement("div");
     tag.className="ms-card-tag "+(canAfford?"ok":soon?"soon":"locked");
-    tag.textContent=canAfford?"\u2713 Can afford!":soon?monthsAway+"mo away":prog+"% saved";
+    // Rich tag: months away with year breakdown
+    let tagTxt;
+    if(canAfford) tagTxt="✓ Can afford!";
+    else if(monthsAway) {
+      const yrs=Math.floor(monthsAway/12), mos=monthsAway%12;
+      tagTxt=(yrs>0?yrs+"y ":"")+( mos>0?mos+"mo":"")+" away";
+    } else tagTxt=prog+"% saved";
+    tag.textContent=tagTxt;
 
     card.append(tb,ico,nm,cst,tag);
-    card.onclick=()=>showMsDetail(ms,sav,canAfford,prog,monthsAway,monthlyNet);
+    card.onclick=()=>showMsDetail(ms,sav,canAfford,prog,monthsAway,avgMonthlySav,costPKR2,asadSav2,filzaSav2,lloydsSav2);
     grid.append(card);
   });
+  }).catch(()=>{});
 }
 
-function showMsDetail(ms,savAmt,canAfford,prog,monthsAway,monthlyNet) {
-  const cur=ms.cur==="GBP"?"\u00A3":"PKR ";
+function showMsDetail(ms,savAmt,canAfford,prog,monthsAway,avgMonthlySav,costPKR,asadSav,filzaSav,lloydsSav) {
   document.getElementById("ms-d-ico").textContent=ms.icon;
   document.getElementById("ms-d-name").textContent=ms.name;
-  document.getElementById("ms-d-cost").textContent="Goal: "+cur+Math.round(ms.cost).toLocaleString();
+  document.getElementById("ms-d-cost").textContent="Goal: PKR "+Math.round(costPKR||ms.cost).toLocaleString()+(ms.cur==="GBP"?" ("+fmtG(ms.cost)+")":"");
   document.getElementById("ms-d-desc").textContent=ms.desc;
   const box=document.getElementById("ms-d-box");
   const hl=document.getElementById("ms-d-hl");
   const bar=document.getElementById("ms-d-bar");
-  const shortfall=ms.cost-savAmt;
-  const surplus=savAmt-ms.cost;
+  const shortfall=costPKR-savAmt;
+  const surplus=savAmt-costPKR;
+
+  // Months/years away text
+  let etaStr="";
+  if(monthsAway){
+    const yrs=Math.floor(monthsAway/12), mos=monthsAway%12;
+    const now2=new Date();
+    const arrDate=new Date(now2.getFullYear(),now2.getMonth()+monthsAway,1);
+    const arrStr=arrDate.toLocaleDateString("en-GB",{month:"long",year:"numeric"});
+    etaStr=(yrs>0?yrs+" year"+(yrs>1?"s":"")+(mos>0?" & "+mos+" month"+(mos>1?"s":""):""):mos+" month"+(mos>1?"s":""))+" — around "+arrStr;
+  }
+
   if(canAfford) {
     box.className="ms-status-box ok";
-    hl.className="ms-headline ok"; hl.textContent="\uD83C\uDF89 Yes! You can afford this right now!";
+    hl.className="ms-headline ok"; hl.textContent="🎉 Yes! You can afford this right now!";
     bar.style.background="linear-gradient(90deg,var(--grn),#60C080,var(--gold))";
   } else if(monthsAway&&monthsAway<=3) {
     box.className="ms-status-box pend";
-    hl.className="ms-headline pend"; hl.textContent="\uD83D\uDD1C So close \u2014 only "+monthsAway+" months away!";
+    hl.className="ms-headline pend"; hl.textContent="🔜 So close — only "+monthsAway+" months away!";
     bar.style.background="linear-gradient(90deg,var(--amber),#D4A030)";
   } else {
     box.className="ms-status-box locked";
-    hl.className="ms-headline locked"; hl.textContent="\u23F3 Keep saving \u2014 "+prog+"% there";
+    hl.className="ms-headline locked"; hl.textContent="⏳ Keep saving — "+prog+"% there";
     bar.style.background="var(--paneld)";
   }
+
+  const f2=v=>v>=100000?(v/100000).toFixed(1).replace(/\.0$/,"")+"L":v>=1000?Math.round(v/1000)+"K":Math.round(v).toLocaleString();
   const brk=document.getElementById("ms-d-brk");
-  brk.innerHTML="Current savings: <strong>"+cur+Math.round(savAmt).toLocaleString()+"</strong><br/>"+
-    "Goal: <strong>"+cur+Math.round(ms.cost).toLocaleString()+"</strong><br/>"+
-    (canAfford
-      ? "<strong style='color:var(--grn)'>You have "+cur+Math.round(surplus).toLocaleString()+" more than needed \u2713</strong>"
-      : "Still needed: <strong>"+cur+Math.round(shortfall).toLocaleString()+"</strong>"+(monthlyNet>0&&monthsAway?"<br/>At current rate: <strong>~"+monthsAway+" months</strong>":"")
-    )+"<br/>Progress: <strong>"+prog+"%</strong>";
+  brk.innerHTML=
+    "<div style='display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:12px;margin-bottom:8px;'>"+
+      "<span style='color:var(--sf)'>🔵 Asad HBL</span><span><b>PKR "+f2(asadSav||0)+"</b></span>"+
+      "<span style='color:var(--sf)'>🩷 Filza HBL</span><span><b>PKR "+f2(filzaSav||0)+"</b></span>"+
+      "<span style='color:var(--sf)'>🇬🇧 Lloyds</span><span><b>"+fmtG(lloydsSav||0)+" = PKR "+f2((lloydsSav||0)*GBP_TO_PKR)+"</b></span>"+
+      "<span style='color:var(--sf)'>📦 Grand Total</span><span><b>PKR "+f2(savAmt)+"</b></span>"+
+    "</div>"+
+    "<div style='border-top:1px solid var(--br);padding-top:8px;font-size:12px;'>"+
+      "Goal: <b>PKR "+f2(costPKR)+"</b><br/>"+
+      (canAfford
+        ? "<b style='color:var(--grn)'>You have PKR "+f2(surplus)+" more than needed ✓</b>"
+        : "Still needed: <b>PKR "+f2(shortfall)+"</b><br/>"+
+          (avgMonthlySav>0&&monthsAway
+            ? "Saving at: <b>PKR "+f2(avgMonthlySav)+"/mo</b><br/>"+
+              "ETA: <b>"+etaStr+"</b>"
+            : "Start saving to see ETA")
+      )+
+    "</div>";
   document.getElementById("ms-detail").classList.add("show");
 }
 
@@ -2952,6 +3014,8 @@ function renderSavings(container) {
       const filzaVals = months.map(m=>parseFloat(histFull[m]?.sav_filza||0));
       const totalVals = months.map((_,i)=>asadVals[i]+filzaVals[i]);
       const lloydVals = months.map(m=>parseFloat(histFull[m]?.sav_lloyds||0));
+      // Grand total: all PKR savings + Lloyds converted to PKR
+      const grandVals = months.map((_,i)=>asadVals[i]+filzaVals[i]+lloydVals[i]*GBP_TO_PKR);
       const n = months.length;
 
       // Canvas — responsive width
@@ -3064,9 +3128,10 @@ function renderSavings(container) {
           ctx.setLineDash([]);
         }
 
-        drawLine(totalVals, yP, "#2A7A50", false, 2.5, "#2A7A50");
-        drawLine(asadVals,  yP, "#4A90D0", true,  1.8);
-        drawLine(filzaVals, yP, "#C04888", true,  1.8);
+        drawLine(grandVals, yP, "#0A5C2A", false, 3,   "#0A5C2A"); // Grand total (PKR + GBP converted)
+        drawLine(totalVals, yP, "#2A7A50", true,  1.8);             // PKR only (dashed)
+        drawLine(asadVals,  yP, "#4A90D0", true,  1.5);
+        drawLine(filzaVals, yP, "#C04888", true,  1.5);
         drawLine(lloydVals, yG, "#C09030", false, 2);
 
         // Hover crosshair
@@ -3090,10 +3155,11 @@ function renderSavings(container) {
             ctx.stroke();
           });
         }
-        drawDots(totalVals, yP, "#2A7A50", 5);
-        drawDots(asadVals,  yP, "#4A90D0", 4);
-        drawDots(filzaVals, yP, "#C04888", 4);
-        drawDots(lloydVals, yG, "#C09030", 4);
+        drawDots(grandVals, yP, "#0A5C2A", 6);
+        drawDots(totalVals, yP, "#2A7A50", 4);
+        drawDots(asadVals,  yP, "#4A90D0", 3.5);
+        drawDots(filzaVals, yP, "#C04888", 3.5);
+        drawDots(lloydVals, yG, "#C09030", 3.5);
 
         return {xP, yP, yG, PL, PR, PT, PB, gW, gH, maxPKR, maxGBP};
       }
@@ -3116,13 +3182,15 @@ function renderSavings(container) {
         const m=months[best], parts=m.split("_");
         const monLbl=(MON_NAMES[(parseInt(parts[1]||1)-1)]||"")+" "+(parts[0]||"").slice(2);
         const a=asadVals[best], f=filzaVals[best], t=totalVals[best], l=lloydVals[best];
+        const g=grandVals[best];
         function fv(v){ return v>=100000?(v/100000).toFixed(2).replace(/\.?0+$/,"")+"L":v>=1000?(v/1000).toFixed(1).replace(/\.0$/,"")+"K":"PKR "+Math.round(v); }
         tooltip.innerHTML=`
           <div class="sav-chart-tooltip-month">${monLbl}</div>
-          <div class="sav-chart-tooltip-row"><div class="sav-chart-tooltip-dot" style="background:#2A7A50"></div>Total<span class="sav-chart-tooltip-val">${fv(t)}</span></div>
+          <div class="sav-chart-tooltip-row"><div class="sav-chart-tooltip-dot" style="background:#0A5C2A"></div>Grand Total<span class="sav-chart-tooltip-val">${fv(g)}</span></div>
+          <div class="sav-chart-tooltip-row"><div class="sav-chart-tooltip-dot" style="background:#2A7A50"></div>PKR Only<span class="sav-chart-tooltip-val">${fv(t)}</span></div>
           <div class="sav-chart-tooltip-row"><div class="sav-chart-tooltip-dot" style="background:#4A90D0"></div>Asad<span class="sav-chart-tooltip-val">${fv(a)}</span></div>
           <div class="sav-chart-tooltip-row"><div class="sav-chart-tooltip-dot" style="background:#C04888"></div>Filza<span class="sav-chart-tooltip-val">${fv(f)}</span></div>
-          <div class="sav-chart-tooltip-row"><div class="sav-chart-tooltip-dot" style="background:#C09030"></div>Lloyds<span class="sav-chart-tooltip-val">£${Math.round(l).toLocaleString()}</span></div>`;
+          <div class="sav-chart-tooltip-row"><div class="sav-chart-tooltip-dot" style="background:#C09030"></div>Lloyds<span class="sav-chart-tooltip-val">£${Math.round(l).toLocaleString()} = ${fv(l*GBP_TO_PKR)}</span></div>`;
 
         // Position tooltip
         const tx = xP(best) > CW*0.6 ? xP(best)-162 : xP(best)+10;
