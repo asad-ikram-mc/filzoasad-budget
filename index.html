@@ -1370,9 +1370,9 @@ function makeExpenseChart(who, accentColor) {
   const exps = EXPENSES.filter(e=>e.who===who);
   const MONTHS_SHORT=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-  // items array — mutated when month changes
+  // items array — store id so lookups survive sorting
   const items = exps.map(e=>({
-    name: e.name, icon: e.icon, budget: e.budget,
+    id: e.id, name: e.name, icon: e.icon, budget: e.budget,
     spent: totalSpent(e.id), color: e.bg||"#E8EEE9",
   }));
   const totalBudget = items.reduce((s,e)=>s+e.budget,0);
@@ -1424,32 +1424,30 @@ function makeExpenseChart(who, accentColor) {
     const mk = mcy+"_"+String(mcm+1).padStart(2,"0");
     // If it's the current app month, use live state (already loaded)
     if(mcm===cm && mcy===cy) {
-      items.forEach(it=>{ it.spent=totalSpent(it.id||exps.find(e=>e.name===it.name)?.id); });
-      // re-map ids
-      exps.forEach((e,i)=>{ if(items[i]) items[i].spent=totalSpent(e.id); });
+      items.forEach(it=>{ it.spent=totalSpent(it.id); });
       refreshBadge(); applySortAndDraw(); return;
     }
     get(ref(db,"af/"+mk)).then(snap=>{
       const mstate=snap.val()||{};
-      exps.forEach((e,i)=>{
-        const logs=mstate.expenses?.[e.id]||{};
-        items[i].spent=Object.values(logs).reduce((s,v)=>s+(v.amt||0),0);
+      // Use id-based lookup — items may be reordered by sort
+      items.forEach(it=>{
+        const logs=mstate.expenses?.[it.id]||{};
+        it.spent=Object.values(logs).reduce((s,v)=>s+(v.amt||0),0);
       });
       refreshBadge(); applySortAndDraw();
-    }).catch(()=>{ exps.forEach((_,i)=>items[i].spent=0); refreshBadge(); applySortAndDraw(); });
+    }).catch(()=>{ items.forEach(it=>it.spent=0); refreshBadge(); applySortAndDraw(); });
   }
 
   // Load all-time aggregated data — iterate flat YYYY_MM keys under af/
   function loadAllTimeData() {
     get(ref(db,"af")).then(snap=>{
       const allData=snap.val()||{};
-      exps.forEach((_,i)=>items[i].spent=0);
+      items.forEach(it=>it.spent=0);
       Object.entries(allData).forEach(([key,monthData])=>{
-        // Keys are like "2026_04" or "savings" — skip non-month keys
         if(!key.match(/^\d{4}_\d{2}$/) || !monthData?.expenses) return;
-        exps.forEach((e,i)=>{
-          const logs=monthData.expenses[e.id]||{};
-          items[i].spent+=Object.values(logs).reduce((s,v)=>s+(v.amt||0),0);
+        items.forEach(it=>{
+          const logs=monthData.expenses[it.id]||{};
+          it.spent+=Object.values(logs).reduce((s,v)=>s+(v.amt||0),0);
         });
       });
       refreshBadge(); applySortAndDraw();
@@ -1621,7 +1619,7 @@ function makeExpenseChart(who, accentColor) {
     });
   }
 
-  draw();
+  applySortAndDraw();
 
   // Hover
   function onMove(e){
