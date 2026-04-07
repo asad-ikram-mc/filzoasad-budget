@@ -1419,38 +1419,46 @@ function makeExpenseChart(who, accentColor) {
   monthNav.append(prevBtn,monthLbl,nextBtn);
   wrap.append(monthNav);
 
-  // Load month data and update items + badge + chart
+  // Load month data — use correct YYYY_MM key format
   function loadMonthData(mcm, mcy) {
-    get(ref(db,"af/"+mcy+"/"+String(mcm+1).padStart(2,"0"))).then(snap=>{
+    const mk = mcy+"_"+String(mcm+1).padStart(2,"0");
+    // If it's the current app month, use live state (already loaded)
+    if(mcm===cm && mcy===cy) {
+      items.forEach(it=>{ it.spent=totalSpent(it.id||exps.find(e=>e.name===it.name)?.id); });
+      // re-map ids
+      exps.forEach((e,i)=>{ if(items[i]) items[i].spent=totalSpent(e.id); });
+      refreshBadge(); applySortAndDraw(); return;
+    }
+    get(ref(db,"af/"+mk)).then(snap=>{
       const mstate=snap.val()||{};
-      items.forEach(it=>{
-        const logs=mstate.expenses?.[it.id]||{};
-        it.spent=Object.values(logs).reduce((s,e)=>s+(e.amt||0),0);
+      exps.forEach((e,i)=>{
+        const logs=mstate.expenses?.[e.id]||{};
+        items[i].spent=Object.values(logs).reduce((s,v)=>s+(v.amt||0),0);
       });
       refreshBadge(); applySortAndDraw();
-    }).catch(()=>{ items.forEach(it=>it.spent=0); refreshBadge(); applySortAndDraw(); });
+    }).catch(()=>{ exps.forEach((_,i)=>items[i].spent=0); refreshBadge(); applySortAndDraw(); });
   }
 
-  // Load all-time aggregated data
+  // Load all-time aggregated data — iterate flat YYYY_MM keys under af/
   function loadAllTimeData() {
     get(ref(db,"af")).then(snap=>{
       const allData=snap.val()||{};
-      // Reset
-      items.forEach(it=>it.spent=0);
-      // Sum across all year/month nodes
-      Object.values(allData).forEach(yearData=>{
-        if(typeof yearData!=="object") return;
-        Object.values(yearData).forEach(monthData=>{
-          if(!monthData?.expenses) return;
-          items.forEach(it=>{
-            const logs=monthData.expenses[it.id]||{};
-            it.spent+=Object.values(logs).reduce((s,e)=>s+(e.amt||0),0);
-          });
+      exps.forEach((_,i)=>items[i].spent=0);
+      Object.entries(allData).forEach(([key,monthData])=>{
+        // Keys are like "2026_04" or "savings" — skip non-month keys
+        if(!key.match(/^\d{4}_\d{2}$/) || !monthData?.expenses) return;
+        exps.forEach((e,i)=>{
+          const logs=monthData.expenses[e.id]||{};
+          items[i].spent+=Object.values(logs).reduce((s,v)=>s+(v.amt||0),0);
         });
       });
       refreshBadge(); applySortAndDraw();
     }).catch(()=>{});
   }
+
+  // Clamp next to not go beyond current real month
+  const _realNow2=new Date();
+  const _maxCm=_realNow2.getMonth(), _maxCy=_realNow2.getFullYear();
 
   monthModeBtn.onclick=()=>{
     expMode="month";
@@ -1465,8 +1473,18 @@ function makeExpenseChart(who, accentColor) {
     loadAllTimeData();
   };
 
-  prevBtn.onclick=()=>{ chartCm--; if(chartCm<0){chartCm=11;chartCy--;} monthLbl.textContent=MONTHS_SHORT[chartCm]+" "+chartCy; loadMonthData(chartCm,chartCy); };
-  nextBtn.onclick=()=>{ chartCm++; if(chartCm>11){chartCm=0;chartCy++;} monthLbl.textContent=MONTHS_SHORT[chartCm]+" "+chartCy; loadMonthData(chartCm,chartCy); };
+  prevBtn.onclick=()=>{
+    chartCm--; if(chartCm<0){chartCm=11;chartCy--;}
+    monthLbl.textContent=MONTHS_SHORT[chartCm]+" "+chartCy;
+    loadMonthData(chartCm,chartCy);
+  };
+  nextBtn.onclick=()=>{
+    // Block future months
+    if(chartCy>_maxCy||(chartCy===_maxCy&&chartCm>=_maxCm)) return;
+    chartCm++; if(chartCm>11){chartCm=0;chartCy++;}
+    monthLbl.textContent=MONTHS_SHORT[chartCm]+" "+chartCy;
+    loadMonthData(chartCm,chartCy);
+  };
 
   // Filter chips: sort
   let expSort="spent";
