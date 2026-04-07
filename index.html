@@ -1391,11 +1391,44 @@ function makeExpenseChart(who, accentColor) {
   bdg.style.color = overallPct>=100?"var(--rose)":overallPct>=80?"var(--amber)":"var(--grn)";
   tr.append(ttl,bdg); wrap.append(tr);
 
-  // Time context label
+  // Inline month navigator for expense chart
   const MONTHS_SHORT=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  const timeCtx=document.createElement("div"); timeCtx.style.cssText="font-size:10px;color:var(--sf);margin-bottom:6px;";
-  timeCtx.textContent=`Showing: ${MONTHS_SHORT[cm]} ${cy} · Switch months with ‹ › above`;
-  wrap.append(timeCtx);
+  let chartCm=cm, chartCy=cy; // local month state for the chart
+  const monthNav=document.createElement("div");
+  monthNav.style.cssText="display:flex;align-items:center;gap:8px;margin-bottom:8px;";
+  const prevBtn=document.createElement("button");
+  prevBtn.style.cssText="width:28px;height:28px;border-radius:50%;border:1px solid var(--br);background:var(--panel);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;";
+  prevBtn.textContent="‹";
+  const nextBtn=document.createElement("button");
+  nextBtn.style.cssText=prevBtn.style.cssText;
+  nextBtn.textContent="›";
+  const monthLbl=document.createElement("div");
+  monthLbl.style.cssText="flex:1;text-align:center;font-size:11px;font-weight:600;color:var(--sf);";
+  function updateExpChart(){
+    monthLbl.textContent=MONTHS_SHORT[chartCm]+" "+chartCy;
+    // Re-read expense data for the selected month from state
+    // Since state is tied to cm/cy, we need to fetch from Firebase
+    get(ref(db,"af/"+chartCy+"/"+String(chartCm+1).padStart(2,"0"))).then(snap=>{
+      const mstate=snap.val()||{};
+      // Update items with new month data
+      items.forEach(it=>{
+        const logs=mstate.expenses?.[it.id]||{};
+        it.spent=Object.values(logs).reduce((s,e)=>s+(e.amt||0),0);
+      });
+      const newTotal=items.reduce((s,e)=>s+e.spent,0);
+      const newBudget=items.reduce((s,e)=>s+e.budget,0);
+      const newPct=newBudget>0?Math.round(newTotal/newBudget*100):0;
+      bdg.textContent=newPct+"% of budget used";
+      bdg.style.background=newPct>=100?"var(--rosel)":newPct>=80?"var(--ambl)":"var(--grnl)";
+      bdg.style.color=newPct>=100?"var(--rose)":newPct>=80?"var(--amber)":"var(--grn)";
+      draw();
+    }).catch(()=>{});
+  }
+  prevBtn.onclick=()=>{ chartCm--; if(chartCm<0){chartCm=11;chartCy--;} updateExpChart(); };
+  nextBtn.onclick=()=>{ chartCm++; if(chartCm>11){chartCm=0;chartCy++;} updateExpChart(); };
+  monthLbl.textContent=MONTHS_SHORT[chartCm]+" "+chartCy;
+  monthNav.append(prevBtn,monthLbl,nextBtn);
+  wrap.append(monthNav);
 
   // Filter chips: sort by spent / budget / remaining
   let expSort="spent";
@@ -2544,11 +2577,31 @@ function renderSavings(container) {
     container.innerHTML = "";
     const savData = snap.val()||{};
 
-    // Current values
-    const lloydsCur = parseFloat(savData.sav_lloyds?.amount||0)||0;
-    const asadCur   = parseFloat(savData.sav_asad?.amount||0)||0;
-    const filzaCur  = parseFloat(savData.sav_filza?.amount||0)||0;
+    // Current values — prefer rebuilt-from-transactions balance over stale Firebase amount
+    // We compute true balances by replaying all transactions first, then use those
+    // (Firebase .amount may be stale if app was re-rendered mid-session)
+    // Pre-compute true balances from all transactions
+    const _txnAll = Object.values(savData.transactions||{}).sort((a,b)=>(a.ts||0)-(b.ts||0));
+    const _trueBal = {sav_asad:0, sav_filza:0, sav_lloyds:0};
+    _txnAll.forEach(t=>{
+      if(!t.accountId) return;
+      if(t.type==="add")      _trueBal[t.accountId]=(_trueBal[t.accountId]||0)+t.amt;
+      else if(t.type==="withdraw") _trueBal[t.accountId]=Math.max(0,(_trueBal[t.accountId]||0)-t.amt);
+    });
+    const lloydsCur = _trueBal.sav_lloyds;
+    const asadCur   = _trueBal.sav_asad;
+    const filzaCur  = _trueBal.sav_filza;
     const totalPKR  = asadCur + filzaCur;
+    // Also fix Firebase if stale
+    if(Math.abs((savData.sav_asad?.amount||0)-asadCur)>1){
+      update(ref(db,"af/savings/sav_asad"),{amount:asadCur}).catch(()=>{});
+    }
+    if(Math.abs((savData.sav_filza?.amount||0)-filzaCur)>1){
+      update(ref(db,"af/savings/sav_filza"),{amount:filzaCur}).catch(()=>{});
+    }
+    if(Math.abs((savData.sav_lloyds?.amount||0)-lloydsCur)>1){
+      update(ref(db,"af/savings/sav_lloyds"),{amount:lloydsCur}).catch(()=>{});
+    }
 
     // ── REBUILD HISTORY FROM TRANSACTIONS (backfill) ──
     // Build per-month running balance from all transactions so history is always accurate
