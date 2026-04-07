@@ -1305,7 +1305,7 @@ function makeSavCard() {
       const freshBal  = parseFloat(freshSnap.val()?.amount||0)||0;
       const newBal = mode==="add" ? freshBal+amt : Math.max(0, freshBal-amt);
       await update(ref(db,"af/savings/"+s.id), {amount:newBal});
-      const histKey = `af/savings/history/${cy}_${String(cm+1).padStart(2,"0")}`;
+      const _tnow=new Date(); const histKey = `af/savings/history/${_tnow.getFullYear()}_${String(_tnow.getMonth()+1).padStart(2,"0")}`;
       await update(ref(db,histKey), {[s.id]:newBal, ts:Date.now()});
       await push(ref(db,"af/savings/transactions"), {
         type:mode, account:s.label, accountId:s.id,
@@ -1390,6 +1390,12 @@ function makeExpenseChart(who, accentColor) {
   bdg.style.background = overallPct>=100?"var(--rosel)":overallPct>=80?"var(--ambl)":"var(--grnl)";
   bdg.style.color = overallPct>=100?"var(--rose)":overallPct>=80?"var(--amber)":"var(--grn)";
   tr.append(ttl,bdg); wrap.append(tr);
+
+  // Time context label
+  const MONTHS_SHORT=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const timeCtx=document.createElement("div"); timeCtx.style.cssText="font-size:10px;color:var(--sf);margin-bottom:6px;";
+  timeCtx.textContent=`Showing: ${MONTHS_SHORT[cm]} ${cy} · Switch months with ‹ › above`;
+  wrap.append(timeCtx);
 
   // Filter chips: sort by spent / budget / remaining
   let expSort="spent";
@@ -2544,9 +2550,25 @@ function renderSavings(container) {
     const filzaCur  = parseFloat(savData.sav_filza?.amount||0)||0;
     const totalPKR  = asadCur + filzaCur;
 
+    // ── REBUILD HISTORY FROM TRANSACTIONS (backfill) ──
+    // Build per-month running balance from all transactions so history is always accurate
+    const txnData = savData.transactions||{};
+    const txnList2 = Object.values(txnData).sort((a,b)=>(a.ts||0)-(b.ts||0));
+    const runBal = {sav_asad:0, sav_filza:0, sav_lloyds:0};
+    const rebuiltHistory = {};
+    txnList2.forEach(t=>{
+      if(!t.ts||!t.accountId) return;
+      const d=new Date(t.ts);
+      const mk=`${d.getFullYear()}_${String(d.getMonth()+1).padStart(2,"0")}`;
+      if(t.type==="add")      runBal[t.accountId]=(runBal[t.accountId]||0)+t.amt;
+      else if(t.type==="withdraw") runBal[t.accountId]=Math.max(0,(runBal[t.accountId]||0)-t.amt);
+      rebuiltHistory[mk]={...runBal, ts:t.ts};
+    });
+    // Merge rebuilt history with any existing history (rebuilt takes priority since it's from transactions)
+    const mergedHistory = Object.assign({}, savData.history||{}, rebuiltHistory);
+
     // ── HERO BANNER ──
     // Calculate this month's net from transactions
-    const txnData = savData.transactions||{};
     const now = new Date();
     const thisMonthTxns = Object.values(txnData).filter(t => {
       if(!t.ts) return false;
@@ -2666,7 +2688,7 @@ function renderSavings(container) {
         // Update balance
         await update(ref(db,"af/savings/"+s.id), {amount:newBal});
         // Save to monthly history snapshot
-        const histKey = `af/savings/history/${cy}_${String(cm+1).padStart(2,"0")}`;
+        const _tnow=new Date(); const histKey = `af/savings/history/${_tnow.getFullYear()}_${String(_tnow.getMonth()+1).padStart(2,"0")}`;
         await update(ref(db,histKey), {[s.id]:newBal, ts:Date.now()});
         // Log transaction
         const txn = {
@@ -2748,11 +2770,15 @@ function renderSavings(container) {
     const MON_NAMES=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
     // Build history — inject current month live values
-    const history = savData.history||{};
+    const history = mergedHistory; // rebuilt from transactions
     const curMonKey = `${cy}_${String(cm+1).padStart(2,"0")}`;
-    const histFull = Object.assign({}, history, {
-      [curMonKey]: { sav_asad:asadCur, sav_filza:filzaCur, sav_lloyds:lloydsCur, ts:Date.now() }
-    });
+    // Always inject today's real month with live balances
+    const _realNow = new Date();
+    const realMonKey = `${_realNow.getFullYear()}_${String(_realNow.getMonth()+1).padStart(2,"0")}`;
+    const histFull = Object.assign({}, history,
+      curMonKey!==realMonKey ? {[curMonKey]:{...history[curMonKey]}, [realMonKey]:{sav_asad:asadCur,sav_filza:filzaCur,sav_lloyds:lloydsCur,ts:Date.now()}} :
+      {[realMonKey]:{sav_asad:asadCur,sav_filza:filzaCur,sav_lloyds:lloydsCur,ts:Date.now()}}
+    );
     const allMonths = Object.keys(histFull).sort();
 
     const chartOuter = document.createElement("div"); chartOuter.className="sav-chart-outer";
