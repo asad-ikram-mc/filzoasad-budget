@@ -80,6 +80,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 
 /* ══ SAVINGS TAB ══ */
 .sav-tab-hero{background:linear-gradient(135deg,#0A2010,#1A4828);border-radius:18px;padding:18px 16px 14px;margin-bottom:12px;position:relative;overflow:hidden;}
+.sav-hero-panels{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.sav-hero-panel{background:rgba(0,0,0,0.2);border-radius:12px;padding:10px 12px;border:1px solid rgba(255,255,255,0.06);}
+.sav-hero-panel.alltime{border-color:rgba(200,168,60,0.2);}
+.sav-hero-panel.thismonth{border-color:rgba(90,210,130,0.2);}
+.sav-hero-panel-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.sav-hero-panel-lbl.alltime{color:rgba(200,168,60,0.7);}
+.sav-hero-panel-lbl.thismonth{color:rgba(90,210,130,0.6);}
+.sav-hero-panel-val{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:#EDF8EF;line-height:1.1;}
+.sav-hero-panel-sub{font-size:9px;color:rgba(200,230,210,0.35);margin-top:3px;}
 .sav-tab-hero::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,rgba(200,168,60,0.12),transparent 60%);pointer-events:none;}
 .sav-hero-title{font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:500;color:rgba(200,230,210,0.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;}
 .sav-hero-total{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:600;color:#EDF8EF;line-height:1;margin-bottom:4px;}
@@ -160,6 +169,48 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 .sav-month-row span:first-child{color:var(--sf);font-weight:600;}
 .sav-month-row span.pos{color:var(--grn);font-weight:600;}
 .sav-month-row span.neg{color:var(--rose);font-weight:600;}
+
+/* ── EXPENSE CHART ── */
+.exp-chart-wrap{background:var(--cw);border:1px solid var(--br);border-radius:16px;padding:14px;box-shadow:0 1px 6px var(--sh);margin-bottom:10px;position:relative;}
+.exp-chart-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.exp-chart-title{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--dk);}
+.exp-chart-badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;}
+.exp-chart-canvas{display:block;width:100%;}
+.exp-chart-tooltip{
+  position:absolute;pointer-events:none;opacity:0;transition:opacity .12s;
+  background:rgba(10,24,14,0.93);border:1px solid rgba(200,168,60,0.25);
+  border-radius:10px;padding:8px 12px;min-width:150px;
+  backdrop-filter:blur(6px);z-index:10;font-family:'DM Sans',sans-serif;
+}
+.exp-chart-tooltip-name{font-size:11px;font-weight:700;color:#EDF8EF;margin-bottom:4px;}
+.exp-chart-tooltip-row{display:flex;justify-content:space-between;font-size:10px;color:rgba(220,240,225,0.7);margin-bottom:2px;}
+.exp-chart-tooltip-row span:last-child{font-weight:600;color:#EDF8EF;}
+.exp-chart-legend{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:10px;}
+.exp-chart-leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--sf);cursor:default;}
+.exp-chart-leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+
+/* ── RESPONSIVE LAYOUT ── */
+@media(min-width:768px){
+  body{max-width:480px;margin:0 auto;box-shadow:0 0 60px rgba(0,0,0,0.15);}
+  .topbar{max-width:480px;}
+  .progress-panel{max-width:480px;}
+  /* Desktop sidebar hint */
+  body::before{content:"";position:fixed;inset:0;background:#E8EDE9;z-index:-1;}
+}
+
+/* Canvas chart */
+.sav-chart-outer{position:relative;background:var(--cw);border:1px solid var(--br);border-radius:16px;padding:14px 14px 10px;box-shadow:0 1px 6px var(--sh);overflow:hidden;}
+.sav-chart-canvas{width:100%;display:block;cursor:crosshair;}
+.sav-chart-tooltip{
+  position:absolute;pointer-events:none;opacity:0;transition:opacity .15s;
+  background:rgba(10,24,14,0.92);border:1px solid rgba(200,168,60,0.3);
+  border-radius:10px;padding:8px 11px;min-width:140px;
+  backdrop-filter:blur(6px);z-index:10;
+}
+.sav-chart-tooltip-month{font-size:10px;font-weight:700;color:rgba(200,168,60,0.9);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;}
+.sav-chart-tooltip-row{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(220,240,225,0.85);margin-bottom:2px;}
+.sav-chart-tooltip-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.sav-chart-tooltip-val{margin-left:auto;font-weight:600;font-family:'Cormorant Garamond',serif;font-size:13px;}
 .sec-header{background:linear-gradient(135deg,var(--grn),var(--grnm));border-radius:16px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
 .sec-header-left{}
 .sec-header-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;color:#EDF8EF;margin-bottom:2px;}
@@ -1307,6 +1358,202 @@ function makeAcctCard(who) {
 }
 
 /* ── VIEW: ASAD ── */
+/* ── EXPENSE CHART ── */
+function makeExpenseChart(who, accentColor) {
+  const exps = EXPENSES.filter(e=>e.who===who);
+  const items = exps.map(e=>({
+    name: e.name,
+    icon: e.icon,
+    budget: e.budget,
+    spent: totalSpent(e.id),
+    color: e.bg||"#E8EEE9",
+  }));
+  const totalBudget = items.reduce((s,e)=>s+e.budget,0);
+  const totalSpent2 = items.reduce((s,e)=>s+e.spent,0);
+  const overallPct  = totalBudget>0?Math.round(totalSpent2/totalBudget*100):0;
+
+  const wrap = document.createElement("div"); wrap.className="exp-chart-wrap";
+
+  // Title row
+  const tr = document.createElement("div"); tr.className="exp-chart-title-row";
+  const ttl = document.createElement("div"); ttl.className="exp-chart-title";
+  ttl.textContent = "Spending Breakdown";
+  const bdg = document.createElement("div"); bdg.className="exp-chart-badge";
+  bdg.textContent = overallPct+"%  of budget used";
+  bdg.style.background = overallPct>=100?"var(--rosel)":overallPct>=80?"var(--ambl)":"var(--grnl)";
+  bdg.style.color = overallPct>=100?"var(--rose)":overallPct>=80?"var(--amber)":"var(--grn)";
+  tr.append(ttl,bdg); wrap.append(tr);
+
+  // Canvas
+  const DPR = window.devicePixelRatio||1;
+  const CW=360, CH=220;
+  const canvas = document.createElement("canvas"); canvas.className="exp-chart-canvas";
+  canvas.width=CW*DPR; canvas.height=CH*DPR;
+  canvas.style.width=CW+"px"; canvas.style.height=CH+"px";
+
+  const tooltip = document.createElement("div"); tooltip.className="exp-chart-tooltip";
+
+  // Colours per category (generated from bg)
+  const PALETTE=["#2A7A50","#4A90D0","#C04888","#C09030","#7B6FD0","#D05A30","#30A8A0","#8A6AD0","#D0904A","#50A870"];
+  items.forEach((it,i)=>{ it.fillColor=PALETTE[i%PALETTE.length]; });
+
+  function draw(hoverIdx=-1){
+    const ctx=canvas.getContext("2d");
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    ctx.clearRect(0,0,CW,CH);
+
+    const cx=115, cy=CH/2, outerR=85, innerR=52;
+    const barX=220, barW=CW-barX-12, barH=13, barGap=17;
+    const startAngle=-Math.PI/2;
+
+    // ── Donut ──
+    let angle=startAngle;
+    items.forEach((it,i)=>{
+      const slice = totalBudget>0?(it.budget/totalBudget)*Math.PI*2:Math.PI*2/items.length;
+      const isHov = i===hoverIdx;
+      const r = isHov?outerR+6:outerR;
+      const inR = isHov?innerR-3:innerR;
+
+      // Spent arc (filled)
+      const spentAngle = it.budget>0?Math.min(it.spent/it.budget,1)*slice:0;
+      ctx.beginPath();
+      ctx.moveTo(cx+Math.cos(angle)*inR, cy+Math.sin(angle)*inR);
+      ctx.arc(cx,cy,r,angle,angle+slice);
+      ctx.arc(cx,cy,inR,angle+slice,angle,true);
+      ctx.closePath();
+      ctx.fillStyle = it.fillColor+"30";
+      ctx.fill();
+
+      // Spent filled portion
+      if(spentAngle>0){
+        ctx.beginPath();
+        ctx.moveTo(cx+Math.cos(angle)*inR, cy+Math.sin(angle)*inR);
+        ctx.arc(cx,cy,r,angle,angle+spentAngle);
+        ctx.arc(cx,cy,inR,angle+spentAngle,angle,true);
+        ctx.closePath();
+        ctx.fillStyle = it.fillColor+(isHov?"EE":"BB");
+        ctx.fill();
+      }
+
+      // Gap line
+      ctx.beginPath();
+      ctx.strokeStyle="#fff"; ctx.lineWidth=2;
+      ctx.moveTo(cx+Math.cos(angle)*inR, cy+Math.sin(angle)*inR);
+      ctx.lineTo(cx+Math.cos(angle)*r,   cy+Math.sin(angle)*r);
+      ctx.stroke();
+
+      it._startAngle=angle; it._slice=slice;
+      angle+=slice;
+    });
+
+    // Centre text
+    ctx.textAlign="center";
+    ctx.fillStyle = overallPct>=100?"#A83858":overallPct>=80?"#886010":"#2A5438";
+    ctx.font=`bold 20px 'Cormorant Garamond',serif`;
+    ctx.fillText(overallPct+"%", cx, cy+2);
+    ctx.font=`10px 'DM Sans',sans-serif`;
+    ctx.fillStyle="rgba(60,80,60,0.5)";
+    ctx.fillText("used", cx, cy+16);
+
+    // ── Horizontal bar chart (right side) ──
+    ctx.textAlign="left";
+    items.forEach((it,i)=>{
+      const y=14+i*barGap;
+      if(y+barH>CH-8) return;
+      const isHov=i===hoverIdx;
+      const pct2=it.budget>0?Math.min(it.spent/it.budget,1):0;
+      const over=it.spent>it.budget;
+
+      // Background track
+      ctx.fillStyle=isHov?"rgba(0,0,0,0.08)":"rgba(0,0,0,0.04)";
+      ctx.beginPath(); ctx.roundRect(barX,y,barW,barH,4); ctx.fill();
+
+      // Filled bar
+      ctx.fillStyle=over?"#A8385888":it.fillColor+(isHov?"CC":"88");
+      ctx.beginPath(); ctx.roundRect(barX,y,Math.max(4,pct2*barW),barH,4); ctx.fill();
+
+      // Icon + name
+      ctx.font=`10px 'DM Sans',sans-serif`;
+      ctx.fillStyle=isHov?"var(--dk)":"rgba(30,50,35,0.7)";
+      ctx.fillText(it.icon+" "+it.name, barX, y-2);
+
+      // Right-side value
+      const rem=it.budget-it.spent;
+      ctx.textAlign="right";
+      ctx.fillStyle=over?"#A83858":isHov?"#2A5438":"rgba(30,50,35,0.55)";
+      ctx.font=`bold 9px 'DM Sans',sans-serif`;
+      const remStr=over?"−"+(rem*-1>=1000?Math.round(rem*-1/1000)+"K":Math.round(rem*-1)):"+"+(rem>=1000?Math.round(rem/1000)+"K":Math.round(rem));
+      ctx.fillText(remStr, CW-8, y+9);
+      ctx.textAlign="left";
+    });
+  }
+
+  draw();
+
+  // Hover
+  function onMove(e){
+    const rect=canvas.getBoundingClientRect();
+    const mx=(e.clientX||e.touches?.[0]?.clientX||0)-rect.left;
+    const my=(e.clientY||e.touches?.[0]?.clientY||0)-rect.top;
+    // Scale to canvas coords
+    const sx=mx*(CW/rect.width), sy=my*(CH/rect.height);
+    const cx=115, cy=CH/2;
+    const dx=sx-cx, dy=sy-cy, dist=Math.sqrt(dx*dx+dy*dy);
+
+    let hit=-1;
+    if(dist>=48&&dist<=100){
+      let ang=Math.atan2(dy,dx);
+      if(ang<-Math.PI/2) ang+=Math.PI*2;
+      items.forEach((it,i)=>{
+        let s=it._startAngle, e2=s+it._slice;
+        let a=ang<-Math.PI/2?ang+Math.PI*2:ang;
+        if(a>=s&&a<e2) hit=i;
+      });
+    }
+    // Also hit test bars (right side)
+    if(hit<0&&sx>=220){
+      items.forEach((it,i)=>{
+        const y=14+i*17;
+        if(sy>=y-12&&sy<=y+8) hit=i;
+      });
+    }
+
+    draw(hit);
+    if(hit>=0){
+      const it=items[hit];
+      const pct2=it.budget>0?Math.round(it.spent/it.budget*100):0;
+      const rem=it.budget-it.spent;
+      tooltip.innerHTML=`
+        <div class="exp-chart-tooltip-name">${it.icon} ${it.name}</div>
+        <div class="exp-chart-tooltip-row"><span>Spent</span><span>${fmt(it.spent)}</span></div>
+        <div class="exp-chart-tooltip-row"><span>Budget</span><span>${fmt(it.budget)}</span></div>
+        <div class="exp-chart-tooltip-row"><span>${rem<0?"Over":"Left"}</span><span style="color:${rem<0?"#F5A0A0":"#6BD98A"}">${rem<0?"−":""}${fmt(Math.abs(rem))}</span></div>
+        <div class="exp-chart-tooltip-row"><span>Used</span><span>${pct2}%</span></div>`;
+      const tx=sx>CW*0.55?sx-170:sx+14;
+      tooltip.style.left=tx*(rect.width/CW)+"px";
+      tooltip.style.top=(sy-10)*(rect.height/CH)+"px";
+      tooltip.style.opacity="1";
+    } else {
+      tooltip.style.opacity="0";
+    }
+  }
+  function onLeave(){ tooltip.style.opacity="0"; draw(); }
+
+  canvas.addEventListener("mousemove", onMove);
+  canvas.addEventListener("touchmove", e=>{e.preventDefault();onMove(e);},{passive:false});
+  canvas.addEventListener("mouseleave", onLeave);
+  canvas.addEventListener("touchend",   onLeave);
+
+  // Legend
+  const leg=document.createElement("div"); leg.className="exp-chart-legend";
+  items.forEach(it=>{
+    leg.innerHTML+=`<div class="exp-chart-leg-item"><div class="exp-chart-leg-dot" style="background:${it.fillColor}"></div>${it.icon} ${it.name}</div>`;
+  });
+
+  wrap.append(canvas, tooltip, leg);
+  return wrap;
+}
+
 function renderAsad(container, compact) {
   if(!compact) container.innerHTML="";
   const incPKR=incRecvd("asad","PKR"), incGBP=incRecvd("asad","GBP")||0;
@@ -1345,6 +1592,9 @@ function renderAsad(container, compact) {
     const eb=document.createElement("div"); eb.className="card-body";
     EXPENSES.filter(e=>e.who==="asad").forEach(e=>eb.append(makeExpItem(e,false)));
     ec.append(eh,eb); container.append(ec);
+
+    container.append(sH("Spending Breakdown"));
+    container.append(makeExpenseChart("asad","#1C486A"));
 
     container.append(sH("Bank Accounts"));
     container.append(makeAcctCard("asad"));
@@ -1389,6 +1639,9 @@ function renderFilza(container, compact) {
     const eb=document.createElement("div"); eb.className="card-body";
     EXPENSES.filter(e=>e.who==="filza").forEach(e=>eb.append(makeExpItem(e,false)));
     ec.append(eh,eb); container.append(ec);
+
+    container.append(sH("Spending Breakdown"));
+    container.append(makeExpenseChart("filza","#682048"));
 
     container.append(sH("Bank Accounts"));
     container.append(makeAcctCard("filza"));
@@ -2264,11 +2517,37 @@ function renderSavings(container) {
     const totalPKR  = asadCur + filzaCur;
 
     // ── HERO BANNER ──
+    // Calculate this month's net from transactions
+    const txnData = savData.transactions||{};
+    const now = new Date();
+    const thisMonthTxns = Object.values(txnData).filter(t => {
+      if(!t.ts) return false;
+      const d = new Date(t.ts);
+      return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth();
+    });
+    const monthAdded    = thisMonthTxns.filter(t=>t.type==="add")     .reduce((s,t)=>s+(t.cur==="PKR"?t.amt:0),0);
+    const monthWithdrawn= thisMonthTxns.filter(t=>t.type==="withdraw").reduce((s,t)=>s+(t.cur==="PKR"?t.amt:0),0);
+    const monthNet      = monthAdded - monthWithdrawn;
+    const monthNetGBP   = thisMonthTxns.filter(t=>t.type==="add"&&t.cur==="GBP").reduce((s,t)=>s+t.amt,0)
+                        - thisMonthTxns.filter(t=>t.type==="withdraw"&&t.cur==="GBP").reduce((s,t)=>s+t.amt,0);
+    const MONTHS_ARR=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const curMonthName = MONTHS_ARR[now.getMonth()];
+
     const hero = document.createElement("div"); hero.className="sav-tab-hero";
     hero.innerHTML = `
-      <div class="sav-hero-title">💰 Total Savings</div>
-      <div class="sav-hero-total">${fmt(totalPKR)}</div>
-      <div class="sav-hero-sub">PKR combined · ${fmtG(lloydsCur)} GBP in Lloyds UK</div>
+      <div class="sav-hero-title">💰 Savings Overview</div>
+      <div class="sav-hero-panels">
+        <div class="sav-hero-panel alltime">
+          <div class="sav-hero-panel-lbl alltime">🏦 All-Time Total</div>
+          <div class="sav-hero-panel-val">${fmt(totalPKR)}</div>
+          <div class="sav-hero-panel-sub">${fmtG(lloydsCur)} in Lloyds UK</div>
+        </div>
+        <div class="sav-hero-panel thismonth">
+          <div class="sav-hero-panel-lbl thismonth">📅 ${curMonthName} Net</div>
+          <div class="sav-hero-panel-val" style="color:${monthNet>=0?'rgba(90,210,130,0.95)':'rgba(240,120,100,0.95)'}">${monthNet>=0?'+':'−'}${fmt(Math.abs(monthNet))}</div>
+          <div class="sav-hero-panel-sub">${monthNet>=0?'+':'-'}${fmtG(Math.abs(monthNetGBP))} GBP · ${fmt(monthAdded)} added · ${fmt(monthWithdrawn)} out</div>
+        </div>
+      </div>
       <div class="sav-hero-grid">
         <div class="sav-hero-cell">
           <div class="sav-hero-cell-lbl">🇬🇧 Lloyds</div>
@@ -2433,152 +2712,238 @@ function renderSavings(container) {
     }, {onlyOnce:true});
     container.append(txnList);
 
-    // ── LINE GRAPH ──
+    // ── CANVAS CHART ──
     const graphTitle = document.createElement("div"); graphTitle.className="sav-graph-title";
     graphTitle.textContent = "📈 Savings Over Time";
     container.append(graphTitle);
 
-    const graphWrap = document.createElement("div"); graphWrap.className="sav-graph-wrap";
-
-    // Build history data — always include current month from live balances
+    // Build history — inject current month live values
     const history = savData.history||{};
     const curMonKey = `${cy}_${String(cm+1).padStart(2,"0")}`;
-    // Inject current live values into history snapshot for graph
     const histWithCurrent = Object.assign({}, history, {
-      [curMonKey]: {
-        sav_asad:  asadCur,
-        sav_filza: filzaCur,
-        sav_lloyds: lloydsCur,
-        ts: Date.now()
-      }
+      [curMonKey]: { sav_asad:asadCur, sav_filza:filzaCur, sav_lloyds:lloydsCur, ts:Date.now() }
     });
     const months = Object.keys(histWithCurrent).sort();
+    const MON_NAMES=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+    const chartOuter = document.createElement("div"); chartOuter.className="sav-chart-outer";
+
+    // Legend
+    const leg = document.createElement("div"); leg.className="sav-graph-legend";
+    [{label:"Total PKR",color:"#2A7A50"},{label:"Asad HBL",color:"#4A90D0"},{label:"Filza HBL",color:"#C04888"},{label:"Lloyds £",color:"#C09030"}].forEach(l=>{
+      leg.innerHTML += `<div class="sav-graph-leg-item"><div class="sav-graph-leg-dot" style="background:${l.color}"></div>${l.label}</div>`;
+    });
+    chartOuter.append(leg);
 
     if(months.length < 1) {
       const nd = document.createElement("div"); nd.className="sav-no-data";
       nd.textContent = "Enter your savings balances above to see the graph.";
-      graphWrap.append(nd);
+      chartOuter.append(nd);
     } else {
-      // Use histWithCurrent instead of history for all graph data
-
-      // Legend
-      const leg = document.createElement("div"); leg.className="sav-graph-legend";
-      [{label:"Total PKR",color:"#2A5438"},{label:"Asad HBL",color:"#4A90D0"},{label:"Filza HBL",color:"#C04888"},{label:"Lloyds £",color:"#C09030"}].forEach(l=>{
-        leg.innerHTML += `<div class="sav-graph-leg-item"><div class="sav-graph-leg-dot" style="background:${l.color}"></div>${l.label}</div>`;
-      });
-      graphWrap.append(leg);
-
-      // SVG line graph — taller to give dream markers room
-      const W=340, H=200, PL=46, PR=38, PT=18, PB=32;
-      const gW=W-PL-PR, gH=H-PT-PB;
+      const asadVals  = months.map(m=>parseFloat(histWithCurrent[m]?.sav_asad||0));
+      const filzaVals = months.map(m=>parseFloat(histWithCurrent[m]?.sav_filza||0));
+      const totalVals = months.map(m=>asadVals[months.indexOf(m)]+filzaVals[months.indexOf(m)]);
+      const lloydVals = months.map(m=>parseFloat(histWithCurrent[m]?.sav_lloyds||0));
       const n = months.length;
 
-      const asadVals   = months.map(m=>parseFloat(histWithCurrent[m]?.sav_asad||0));
-      const filzaVals  = months.map(m=>parseFloat(histWithCurrent[m]?.sav_filza||0));
-      const totalVals  = months.map(m=>(parseFloat(histWithCurrent[m]?.sav_asad||0)+parseFloat(histWithCurrent[m]?.sav_filza||0)));
-      const lloydVals  = months.map(m=>parseFloat(histWithCurrent[m]?.sav_lloyds||0));
+      // Canvas
+      const canvas = document.createElement("canvas"); canvas.className="sav-chart-canvas";
+      const DPR = window.devicePixelRatio||1;
+      const CW = 420, CH = 240;
+      canvas.width  = CW * DPR;
+      canvas.height = CH * DPR;
+      canvas.style.width  = CW+"px";
+      canvas.style.height = CH+"px";
 
-      // Left axis: PKR. Right axis: GBP (independent scale)
-      const maxPKR  = Math.max(...totalVals, 100);
-      const maxGBP  = Math.max(...lloydVals, 1);
+      const tooltip = document.createElement("div"); tooltip.className="sav-chart-tooltip";
 
-      function xPos(i)    { return PL + (n<=1 ? gW/2 : (i/(n-1))*gW); }
-      function yPKR(v)    { return PT + gH - (v/maxPKR)*gH; }
-      function yGBP(v)    { return PT + gH - (v/maxGBP)*gH; }
+      // Draw function
+      function drawChart(hoverIdx=-1) {
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(DPR,0,0,DPR,0,0);
+        ctx.clearRect(0,0,CW,CH);
 
-      function makePath(vals, yFn, color, dashed=false, width=2) {
-        if(!vals.length) return "";
-        if(vals.length===1) {
-          const x=xPos(0), y=yFn(vals[0]);
-          return `<line x1="${(x-10).toFixed(1)}" y1="${y.toFixed(1)}" x2="${(x+10).toFixed(1)}" y2="${y.toFixed(1)}" stroke="${color}" stroke-width="${width+0.5}" stroke-linecap="round"${dashed?' stroke-dasharray="5,3"':''}/>`;
+        const PL=52,PR=48,PT=16,PB=36;
+        const gW=CW-PL-PR, gH=CH-PT-PB;
+        const maxPKR = Math.max(...totalVals,1000);
+        const maxGBP = Math.max(...lloydVals,1);
+
+        function xP(i){ return PL+(n<=1?gW/2:(i/(n-1))*gW); }
+        function yP(v){ return PT+gH-(v/maxPKR)*gH; }
+        function yG(v){ return PT+gH-(v/maxGBP)*gH; }
+        function fmtV(v){ return v>=100000?(v/100000).toFixed(1).replace(/\.0$/,"")+"L":v>=1000?Math.round(v/1000)+"K":String(Math.round(v)); }
+
+        // Grid + left Y labels (PKR)
+        ctx.font="10px DM Sans,sans-serif";
+        ctx.fillStyle="rgba(42,84,56,0.45)"; ctx.textAlign="right";
+        [0,.25,.5,.75,1].forEach(f=>{
+          const v=maxPKR*f, y=yP(v);
+          ctx.beginPath(); ctx.strokeStyle="rgba(0,0,0,0.06)"; ctx.lineWidth=1;
+          ctx.moveTo(PL,y); ctx.lineTo(CW-PR,y); ctx.stroke();
+          ctx.fillText(fmtV(v), PL-6, y+3.5);
+        });
+
+        // Right Y labels (GBP)
+        ctx.fillStyle="rgba(192,144,48,0.7)"; ctx.textAlign="left";
+        [0,.5,1].forEach(f=>{
+          const v=maxGBP*f, y=yG(v);
+          const lbl="£"+(v>=1000?Math.round(v/1000)+"k":Math.round(v));
+          ctx.fillText(lbl, CW-PR+6, y+3.5);
+        });
+
+        // X axis labels
+        ctx.fillStyle="rgba(60,80,60,0.5)"; ctx.textAlign="center";
+        months.forEach((m,i)=>{
+          const parts=m.split("_");
+          const lbl=MON_NAMES[(parseInt(parts[1]||1)-1)]||"";
+          ctx.fillText(lbl+" '"+(parts[0]||"").slice(2), xP(i), CH-8);
+        });
+
+        // Axis lines
+        ctx.beginPath(); ctx.strokeStyle="rgba(0,0,0,0.12)"; ctx.lineWidth=1;
+        ctx.moveTo(PL,PT); ctx.lineTo(PL,PT+gH);
+        ctx.moveTo(PL,PT+gH); ctx.lineTo(CW-PR,PT+gH);
+        ctx.stroke();
+        ctx.beginPath(); ctx.strokeStyle="rgba(192,144,48,0.2)"; ctx.lineWidth=1;
+        ctx.moveTo(CW-PR,PT); ctx.lineTo(CW-PR,PT+gH); ctx.stroke();
+
+        // Dream milestone lines
+        MILESTONES.forEach(ms=>{
+          if(ms.cur!=="PKR") return;
+          const ty=yP(ms.cost);
+          if(ty<PT-2||ty>PT+gH+2) return;
+          ctx.beginPath(); ctx.setLineDash([4,5]);
+          ctx.strokeStyle="rgba(200,168,60,0.28)"; ctx.lineWidth=1;
+          ctx.moveTo(PL,ty); ctx.lineTo(CW-PR,ty); ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.font="14px serif"; ctx.textAlign="left";
+          ctx.fillText(ms.icon, CW-PR+4, ty+5);
+        });
+        ctx.setLineDash([]);
+
+        // Draw smooth area + line helper
+        function drawLine(vals,yFn,color,dashed=false,lw=2,areaColor=null){
+          if(!vals.length) return;
+          ctx.beginPath();
+          if(dashed) ctx.setLineDash([6,4]); else ctx.setLineDash([]);
+          ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.lineJoin="round"; ctx.lineCap="round";
+          if(vals.length===1){
+            ctx.moveTo(xP(0)-12,yFn(vals[0])); ctx.lineTo(xP(0)+12,yFn(vals[0]));
+          } else {
+            // Smooth bezier curves
+            ctx.moveTo(xP(0),yFn(vals[0]));
+            for(let i=0;i<vals.length-1;i++){
+              const x1=xP(i),y1=yFn(vals[i]),x2=xP(i+1),y2=yFn(vals[i+1]);
+              const cpx=(x1+x2)/2;
+              ctx.bezierCurveTo(cpx,y1,cpx,y2,x2,y2);
+            }
+          }
+          ctx.stroke();
+          if(areaColor && vals.length>1){
+            ctx.beginPath(); ctx.setLineDash([]);
+            ctx.moveTo(xP(0),PT+gH);
+            for(let i=0;i<vals.length-1;i++){
+              const x1=xP(i),y1=yFn(vals[i]),x2=xP(i+1),y2=yFn(vals[i+1]);
+              ctx.bezierCurveTo((x1+x2)/2,y1,(x1+x2)/2,y2,x2,y2);
+            }
+            ctx.lineTo(xP(n-1),PT+gH); ctx.closePath();
+            const grad=ctx.createLinearGradient(0,PT,0,PT+gH);
+            grad.addColorStop(0,areaColor+"28"); grad.addColorStop(1,areaColor+"04");
+            ctx.fillStyle=grad; ctx.fill();
+          }
+          ctx.setLineDash([]);
         }
-        let d="M";
-        vals.forEach((v,i)=>{ d+=(i>0?" L":"")+xPos(i).toFixed(1)+","+yFn(v).toFixed(1); });
-        return `<path d="${d}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"${dashed?' stroke-dasharray="5,3"':''}/>`;
+
+        drawLine(totalVals, yP, "#2A7A50", false, 2.5, "#2A7A50");
+        drawLine(asadVals,  yP, "#4A90D0", true,  1.8);
+        drawLine(filzaVals, yP, "#C04888", true,  1.8);
+        drawLine(lloydVals, yG, "#C09030", false, 2);
+
+        // Hover crosshair
+        if(hoverIdx>=0){
+          const hx=xP(hoverIdx);
+          ctx.beginPath(); ctx.strokeStyle="rgba(0,0,0,0.12)"; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+          ctx.moveTo(hx,PT); ctx.lineTo(hx,PT+gH); ctx.stroke(); ctx.setLineDash([]);
+        }
+
+        // Dots with hover highlight
+        function drawDots(vals,yFn,color,r=4){
+          vals.forEach((v,i)=>{
+            const x=xP(i),y=yFn(v);
+            const isHov=i===hoverIdx;
+            ctx.beginPath();
+            ctx.arc(x,y,isHov?r+2.5:r,0,Math.PI*2);
+            ctx.fillStyle=isHov?"#fff":color;
+            ctx.fill();
+            ctx.strokeStyle=isHov?color:"#fff";
+            ctx.lineWidth=isHov?2.5:1.5;
+            ctx.stroke();
+          });
+        }
+        drawDots(totalVals, yP, "#2A7A50", 5);
+        drawDots(asadVals,  yP, "#4A90D0", 4);
+        drawDots(filzaVals, yP, "#C04888", 4);
+        drawDots(lloydVals, yG, "#C09030", 4);
+
+        return {xP, yP, yG, PL, PR, PT, PB, gW, gH, maxPKR, maxGBP};
       }
-      function makeArea(vals, yFn, color) {
-        if(vals.length<2) return "";
-        let d="M"+xPos(0).toFixed(1)+","+(PT+gH);
-        vals.forEach((v,i)=>{ d+=" L"+xPos(i).toFixed(1)+","+yFn(v).toFixed(1); });
-        d+=" L"+xPos(n-1).toFixed(1)+","+(PT+gH)+" Z";
-        return `<path d="${d}" fill="${color}" fill-opacity="0.06"/>`;
+
+      let dims = drawChart();
+
+      // Hover interaction
+      function onPointerMove(e){
+        const rect = canvas.getBoundingClientRect();
+        const mx   = (e.clientX||e.touches?.[0]?.clientX||0) - rect.left;
+        const {xP, PL, PR, gW} = dims;
+        if(mx < PL || mx > CW-PR){ tooltip.style.opacity=0; drawChart(); return; }
+        // Find nearest month
+        let best=-1, bestDist=9999;
+        months.forEach((_,i)=>{ const d=Math.abs(xP(i)-mx); if(d<bestDist){bestDist=d;best=i;} });
+        if(best<0){ tooltip.style.opacity=0; return; }
+        drawChart(best);
+
+        // Build tooltip
+        const m=months[best], parts=m.split("_");
+        const monLbl=(MON_NAMES[(parseInt(parts[1]||1)-1)]||"")+" "+(parts[0]||"").slice(2);
+        const a=asadVals[best], f=filzaVals[best], t=totalVals[best], l=lloydVals[best];
+        function fv(v){ return v>=100000?(v/100000).toFixed(2).replace(/\.?0+$/,"")+"L":v>=1000?(v/1000).toFixed(1).replace(/\.0$/,"")+"K":"PKR "+Math.round(v); }
+        tooltip.innerHTML=`
+          <div class="sav-chart-tooltip-month">${monLbl}</div>
+          <div class="sav-chart-tooltip-row"><div class="sav-chart-tooltip-dot" style="background:#2A7A50"></div>Total<span class="sav-chart-tooltip-val">${fv(t)}</span></div>
+          <div class="sav-chart-tooltip-row"><div class="sav-chart-tooltip-dot" style="background:#4A90D0"></div>Asad<span class="sav-chart-tooltip-val">${fv(a)}</span></div>
+          <div class="sav-chart-tooltip-row"><div class="sav-chart-tooltip-dot" style="background:#C04888"></div>Filza<span class="sav-chart-tooltip-val">${fv(f)}</span></div>
+          <div class="sav-chart-tooltip-row"><div class="sav-chart-tooltip-dot" style="background:#C09030"></div>Lloyds<span class="sav-chart-tooltip-val">£${Math.round(l).toLocaleString()}</span></div>`;
+
+        // Position tooltip
+        const tx = xP(best) > CW*0.6 ? xP(best)-155 : xP(best)+12;
+        tooltip.style.left = tx+"px";
+        tooltip.style.top  = "40px";
+        tooltip.style.opacity = "1";
       }
+      function onPointerLeave(){ tooltip.style.opacity=0; drawChart(); }
 
-      // Left Y-axis labels (PKR)
-      let yLabels="";
-      [0,.25,.5,.75,1].forEach(f=>{
-        const v=maxPKR*f, y=yPKR(v);
-        const lbl=v>=100000?(v/100000).toFixed(1).replace(/\.0$/,"")+"L":v>=1000?Math.round(v/1000)+"K":"0";
-        yLabels+=`<text x="${PL-5}" y="${(y+3.5).toFixed(1)}" text-anchor="end" font-size="7" fill="rgba(42,84,56,0.55)" font-family="DM Sans,sans-serif">${lbl}</text>`;
-        yLabels+=`<line x1="${PL}" y1="${y.toFixed(1)}" x2="${W-PR}" y2="${y.toFixed(1)}" stroke="rgba(0,0,0,0.05)" stroke-width="1"/>`;
-      });
+      canvas.addEventListener("mousemove",  onPointerMove);
+      canvas.addEventListener("touchmove",  e=>{ e.preventDefault(); onPointerMove(e); }, {passive:false});
+      canvas.addEventListener("mouseleave", onPointerLeave);
+      canvas.addEventListener("touchend",   onPointerLeave);
 
-      // Right Y-axis labels (GBP)
-      let yLabelsR="";
-      [0,.5,1].forEach(f=>{
-        const v=maxGBP*f, y=yGBP(v);
-        const lbl="£"+(v>=1000?Math.round(v/1000)+"k":Math.round(v));
-        yLabelsR+=`<text x="${W-PR+5}" y="${(y+3.5).toFixed(1)}" text-anchor="start" font-size="7" fill="rgba(192,144,48,0.7)" font-family="DM Sans,sans-serif">${lbl}</text>`;
-      });
-
-      // X axis labels
-      let xLabels="";
-      months.forEach((m,i)=>{
-        const parts=m.split("_");
-        const lbl=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][(parseInt(parts[1]||1)-1)]||"";
-        xLabels+=`<text x="${xPos(i).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="7" fill="rgba(60,80,60,0.5)" font-family="DM Sans,sans-serif">${lbl} ${(parts[0]||"").slice(2)}</text>`;
-      });
-
-      // Dream milestone markers (PKR only, dashed gold lines with icons)
-      let dreamMarkers="";
-      MILESTONES.forEach(ms=>{
-        if(ms.cur!=="PKR") return;
-        const ty = yPKR(ms.cost);
-        if(ty < PT-2 || ty > PT+gH+2) return;
-        dreamMarkers+=`<line x1="${PL}" y1="${ty.toFixed(1)}" x2="${(W-PR).toFixed(1)}" y2="${ty.toFixed(1)}" stroke="rgba(200,168,60,0.3)" stroke-width="1" stroke-dasharray="3,4"/>`;
-        dreamMarkers+=`<text x="${(W-PR+2).toFixed(1)}" y="${(ty+4).toFixed(1)}" font-size="11">${ms.icon}</text>`;
-      });
-
-      // Dots
-      let dots="";
-      totalVals.forEach((v,i)=>{ dots+=`<circle cx="${xPos(i).toFixed(1)}" cy="${yPKR(v).toFixed(1)}" r="3.5" fill="#2A5438" stroke="#fff" stroke-width="1"/>`; });
-      asadVals.forEach((v,i)=>{  dots+=`<circle cx="${xPos(i).toFixed(1)}" cy="${yPKR(v).toFixed(1)}" r="2.5" fill="#4A90D0" stroke="#fff" stroke-width="1"/>`; });
-      filzaVals.forEach((v,i)=>{ dots+=`<circle cx="${xPos(i).toFixed(1)}" cy="${yPKR(v).toFixed(1)}" r="2.5" fill="#C04888" stroke="#fff" stroke-width="1"/>`; });
-      lloydVals.forEach((v,i)=>{ dots+=`<circle cx="${xPos(i).toFixed(1)}" cy="${yGBP(v).toFixed(1)}" r="3" fill="#C09030" stroke="#fff" stroke-width="1"/>`; });
-
-      // Axis lines
-      const axes=`
-        <line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+gH}" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
-        <line x1="${PL}" y1="${PT+gH}" x2="${W-PR}" y2="${PT+gH}" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
-        <line x1="${W-PR}" y1="${PT}" x2="${W-PR}" y2="${PT+gH}" stroke="rgba(192,144,48,0.25)" stroke-width="1"/>`;
-
-      const svgWrap=document.createElement("div"); svgWrap.className="sav-graph-canvas-wrap";
-      svgWrap.innerHTML=`<svg id="sav-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-        ${axes}${yLabels}${yLabelsR}${dreamMarkers}
-        ${makeArea(totalVals,yPKR,"#2A5438")}
-        ${makePath(totalVals,yPKR,"#2A5438",false,2.5)}
-        ${makePath(asadVals,yPKR,"#4A90D0",true)}
-        ${makePath(filzaVals,yPKR,"#C04888",true)}
-        ${makePath(lloydVals,yGBP,"#C09030",false,2)}
-        ${dots}${xLabels}
-      </svg>`;
-      graphWrap.append(svgWrap);
+      chartOuter.append(canvas, tooltip);
 
       // Month-by-month table
-      const tbl=document.createElement("div"); tbl.className="sav-month-table";
+      const tbl=document.createElement("div"); tbl.className="sav-month-table"; tbl.style.marginTop="12px";
       tbl.innerHTML=`<div class="sav-month-row-hdr"><span>Month</span><span>Asad</span><span>Filza</span><span>Total</span></div>`;
       [...months].reverse().forEach(m=>{
         const parts=m.split("_");
-        const monName=(["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][(parseInt(parts[1]||1)-1)]||"")+" "+(parts[0]||"").slice(2);
+        const monName=(MON_NAMES[(parseInt(parts[1]||1)-1)]||"")+" "+(parts[0]||"").slice(2);
         const a=parseFloat(histWithCurrent[m]?.sav_asad||0), f=parseFloat(histWithCurrent[m]?.sav_filza||0), t=a+f;
         const row=document.createElement("div"); row.className="sav-month-row";
         row.innerHTML=`<span>${monName}</span><span class="pos">${fmt(a)}</span><span class="pos">${fmt(f)}</span><span class="pos">${fmt(t)}</span>`;
         tbl.append(row);
       });
-      graphWrap.append(tbl);
+      chartOuter.append(tbl);
     }
 
-    container.append(graphWrap);
+    container.append(chartOuter);
   }, {onlyOnce:true});
 }
 
