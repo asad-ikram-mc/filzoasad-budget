@@ -161,9 +161,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 .sav-txn-amt.withdraw{color:var(--rose);}
 
 .sav-month-table{margin-top:12px;}
-.sav-month-row-hdr{display:grid;grid-template-columns:80px 1fr 1fr 1fr;gap:4px;padding:4px 2px;border-bottom:1px solid var(--br);margin-bottom:4px;}
+.sav-month-row-hdr{display:grid;grid-template-columns:65px 1fr 1fr 1fr 1fr;gap:4px;padding:4px 2px;border-bottom:1px solid var(--br);margin-bottom:4px;}
 .sav-month-row-hdr span{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--sf);}
-.sav-month-row{display:grid;grid-template-columns:80px 1fr 1fr 1fr;gap:4px;padding:6px 2px;border-bottom:1px solid rgba(196,216,198,0.4);}
+.sav-month-row{display:grid;grid-template-columns:65px 1fr 1fr 1fr 1fr;gap:4px;padding:6px 2px;border-bottom:1px solid rgba(196,216,198,0.4);}
 .sav-month-row:last-child{border-bottom:none;}
 .sav-month-row span{font-size:11px;color:var(--dk);}
 .sav-month-row span:first-child{color:var(--sf);font-weight:600;}
@@ -3037,7 +3037,7 @@ function renderSavings(container) {
 
         const PL=52,PR=48,PT=16,PB=36;
         const gW=CW-PL-PR, gH=CH-PT-PB;
-        const maxPKR = Math.max(...totalVals,1000);
+        const maxPKR = Math.max(...grandVals,...totalVals,1000);
         const maxGBP = Math.max(...lloydVals,1);
 
         function xP(i){ return PL+(n<=1?gW/2:(i/(n-1))*gW); }
@@ -3209,13 +3209,17 @@ function renderSavings(container) {
 
       // Month-by-month table
       const tbl=document.createElement("div"); tbl.className="sav-month-table"; tbl.style.marginTop="12px";
-      tbl.innerHTML=`<div class="sav-month-row-hdr"><span>Month</span><span>Asad</span><span>Filza</span><span>Total</span></div>`;
+      tbl.innerHTML=`<div class="sav-month-row-hdr"><span>Month</span><span>Asad</span><span>Filza</span><span>Lloyds £</span><span>Total</span></div>`;
       [...months].reverse().forEach(m=>{
         const parts=m.split("_");
         const monName=(MON_NAMES[(parseInt(parts[1]||1)-1)]||"")+" "+(parts[0]||"").slice(2);
-        const a=parseFloat(histFull[m]?.sav_asad||0), f=parseFloat(histFull[m]?.sav_filza||0), t=a+f;
+        const a=parseFloat(histFull[m]?.sav_asad||0);
+        const f=parseFloat(histFull[m]?.sav_filza||0);
+        const l=parseFloat(histFull[m]?.sav_lloyds||0);
+        const t=a+f+l*GBP_TO_PKR;
+        function fmtS(v){ return v>=100000?(v/100000).toFixed(1).replace(/\.0$/,"")+"L":v>=1000?Math.round(v/1000)+"K":"PKR "+Math.round(v); }
         const row=document.createElement("div"); row.className="sav-month-row";
-        row.innerHTML=`<span>${monName}</span><span class="pos">${fmt(a)}</span><span class="pos">${fmt(f)}</span><span class="pos">${fmt(t)}</span>`;
+        row.innerHTML=`<span>${monName}</span><span class="pos">${fmtS(a)}</span><span class="pos">${fmtS(f)}</span><span class="pos">${l>0?fmtG(l):"—"}</span><span class="pos">${fmtS(t)}</span>`;
         tbl.append(row);
       });
       tblWrap.append(tbl);
