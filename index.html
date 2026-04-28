@@ -3451,8 +3451,8 @@ document.getElementById("next").onclick=()=>{cm++;if(cm>11){cm=0;cy++;}openCats.
 document.getElementById("ms-fab").addEventListener("click", ()=>{ SFX.dream(); openMilestones(); });
 document.getElementById("ms-popup").addEventListener("click", function(e){ if(e.target===this) closeMilestones(); });
 document.getElementById("ms-detail").addEventListener("click", function(e){ if(e.target===this) closeMsDetail(); });
-document.querySelector(".ms-pop-close").addEventListener("click", closeMilestones);
-document.querySelector(".ms-close-btn").addEventListener("click", closeMsDetail);
+(function(){const e=document.querySelector(".ms-pop-close");if(e)e.addEventListener("click",closeMilestones);})();
+(function(){const e=document.querySelector(".ms-close-btn");if(e)e.addEventListener("click",closeMsDetail);})();
 
 // subscribe() is called inside checkSession() above if session exists,
 // or inside doLogin() after successful login
