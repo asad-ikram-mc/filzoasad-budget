@@ -28,7 +28,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{min-height:100%;overscroll-behavior:none;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);padding-bottom:5rem;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);padding-bottom:5rem;scroll-padding-top:0;}
 
 
 /* ══ LOGIN PAGE ══ */
@@ -199,7 +199,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 @media(min-width:768px){
   body{background:#E8EDE9;}
   .topbar-inner{max-width:900px;margin:0 auto;}
-  .hero{max-height:360px;}
   .view{max-width:900px;margin:0 auto;padding:.85rem 2rem 4rem;}
   .split-view{max-width:900px;margin:0 auto;padding:.5rem 2rem 4rem;}
   #split-sum-row{max-width:900px;margin:0 auto;}
@@ -344,7 +343,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 .hero-quote{font-family:'Cormorant Garamond',serif;font-size:15px;font-style:italic;color:rgba(220,245,225,0.72);}
 
 /* TOPBAR */
-.topbar{background:linear-gradient(165deg,#050E07 0%,#0A1F10 30%,#122E18 60%,#1A4520 100%);position:sticky;top:0;z-index:100;padding:env(safe-area-inset-top,0) 0 0;}
+.topbar{background:linear-gradient(165deg,#050E07 0%,#0A1F10 30%,#122E18 60%,#1A4520 100%);position:sticky;top:0;z-index:100;min-height:40px;padding:env(safe-area-inset-top,0) 0 0;}
 .topbar-inner{padding:.9rem 1.1rem 0;}
 .brand-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:.45rem;position:relative;}
 .sync-wrap{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:4px;}
@@ -2703,9 +2702,9 @@ function updateProgressBars(){
     function step(now){
       const p=Math.min((now-t0)/dur,1);
       const ease=1-Math.pow(1-p,3);
-      el.setAttribute("width", start+(target-start)*ease);
+      el.setAttribute("width", Math.max(0, start+(target-start)*ease));
       if(p<1) requestAnimationFrame(step);
-      else el.setAttribute("width",target);
+      else el.setAttribute("width", Math.max(0, target));
     }
     requestAnimationFrame(step);
   }
