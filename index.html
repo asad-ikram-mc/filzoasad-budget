@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0A1A10"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/><!-- v6.1 -->
+<meta http-equiv="Expires" content="0"/><!-- v6.2 -->
 <!-- v3.1 -->
 <title>Asad &amp; Filza</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -754,9 +754,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
       <div class="tab"     data-view="filza">&#128100; Filza</div>
       <div class="tab"     data-view="split">&#9638; Split</div>
       <div class="tab"     data-view="activity">&#128336; Activity</div>
-      <div class="tab"     data-view="analytics">&#128200; Charts</div>
       <div class="tab"     data-view="secured">&#128274; Secured</div>
       <div class="tab"     data-view="savings">&#128200; Savings</div>
+      <div class="tab" data-view="analytics">&#128202; Charts</div>
     </div>
   </div>
 </div>
@@ -911,8 +911,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 <div class="view"    id="view-filza"></div>
 <div class="split-view" id="view-split"></div>
 <div id="split-sum-row"></div>
-<div class="view" id="view-activity"></div>
 <div class="view" id="view-analytics"></div>
+<div class="view" id="view-activity"></div>
 <div class="view" id="view-secured"></div>
 <div class="view" id="view-savings"></div>
 
@@ -2442,13 +2442,8 @@ async function doLogin(){
 }
 
 document.getElementById("login-submit").addEventListener("click", doLogin);
-(function(){
-  const ba=document.getElementById("btn-asad"); if(ba) ba.addEventListener("click",()=>selectWho("asad"));
-  const bf=document.getElementById("btn-filza"); if(bf) bf.addEventListener("click",()=>selectWho("filza"));
-})();
 document.getElementById("login-pass").addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); });
 document.getElementById("login-pass").addEventListener("input", ()=>{ const el=document.getElementById("login-err"); el.textContent=""; el.className="login-error"; });
-document.getElementById("login-pass").addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); });
 document.getElementById("toggle-pass").addEventListener("click", ()=>{
   const inp = document.getElementById("login-pass");
   const btn = document.getElementById("toggle-pass");
@@ -2594,100 +2589,6 @@ function renderActivity(container){
 }
 
 window.openEditModal = openEditModal;
-/* -- ANALYTICS TAB -- */
-const BANK_DEFS = [
-  {id:"asad_abl",  name:"Asad \u2014 ABL",   who:"asad",  color:"#4A90D0", items:["petrol","shopping","dining"]},
-  {id:"asad_hbl",  name:"Asad \u2014 HBL",   who:"asad",  color:"#2A7A5A", items:["ammi","internet","phone_a","daily_a"]},
-  {id:"filza_hbl", name:"Filza \u2014 HBL",  who:"filza", color:"#C04888", items:["mama","daily_f","misc","phone_f"]},
-  {id:"filza_scb", name:"Filza \u2014 SCB",  who:"filza", color:"#9A6030", items:["grocery","toilet","server","netflix"]},
-];
-let analyticsCharts = {};
-function destroyCharts(){
-  Object.values(analyticsCharts).forEach(c=>{try{c.destroy();}catch(e){}});
-  analyticsCharts={};
-}
-function renderAnalytics(container){
-  container.innerHTML=""; destroyCharts();
-  const fmt2=n=>"PKR "+Math.abs(Math.round(n)).toLocaleString();
-  const sh=n=>{n=Math.abs(Math.round(n));if(n>=100000)return(n/100000).toFixed(1)+"L";if(n>=1000)return Math.round(n/1000)+"K";return n;};
-
-  // A. Spending vs Budget horizontal bar
-  const expCard=document.createElement("div"); expCard.className="chart-card";
-  const expTitle=document.createElement("div"); expTitle.className="chart-title"; expTitle.textContent="Spending vs Budget";
-  const expSub=document.createElement("div"); expSub.className="chart-sub"; expSub.textContent="How much of each category budget is used this month";
-  const expWrap=document.createElement("div"); expWrap.className="chart-wrap"; expWrap.style.height="320px";
-  const expCanvas=document.createElement("canvas"); expCanvas.id="chart-exp";
-  expWrap.append(expCanvas); expCard.append(expTitle,expSub,expWrap); container.append(expCard);
-  const catSpent=EXPENSES.map(e=>totalSpent(e.id));
-  const catColors=EXPENSES.map((e,i)=>{const p=e.budget>0?catSpent[i]/e.budget:0;return p>=1?"rgba(168,56,88,0.85)":p>=0.75?"rgba(184,133,10,0.85)":"rgba(42,84,56,0.85)";});
-  analyticsCharts["exp"]=new Chart(expCanvas,{type:"bar",data:{labels:EXPENSES.map(e=>e.icon+" "+e.name),datasets:[{label:"Spent",data:catSpent,backgroundColor:catColors,borderRadius:4},{label:"Budget",data:EXPENSES.map(e=>e.budget),backgroundColor:"rgba(200,218,200,0.25)",borderRadius:4}]},options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>fmt2(ctx.raw)}}},scales:{x:{ticks:{callback:v=>sh(v)},grid:{color:"rgba(0,0,0,.05)"}},y:{ticks:{font:{size:10}}}}}});
-
-  // B. Bank breakdown
-  const bankCard=document.createElement("div"); bankCard.className="chart-card";
-  const bankTitle=document.createElement("div"); bankTitle.className="chart-title"; bankTitle.textContent="Bank Account Breakdown";
-  const bankSub=document.createElement("div"); bankSub.className="chart-sub"; bankSub.textContent="Budget vs spent per account";
-  bankCard.append(bankTitle,bankSub);
-  BANK_DEFS.forEach(bank=>{
-    const bankExps=EXPENSES.filter(e=>bank.items.includes(e.id));
-    const bu=bankExps.reduce((s,e)=>s+e.budget,0);
-    const sp=bankExps.reduce((s,e)=>s+totalSpent(e.id),0);
-    const pct=bu>0?Math.min(100,Math.round(sp/bu*100)):0;
-    const row=document.createElement("div"); row.className="bank-row";
-    const left=document.createElement("div"); left.className="bank-left";
-    const nm=document.createElement("div"); nm.className="bank-name"; nm.textContent=bank.name;
-    const its=document.createElement("div"); its.className="bank-items"; its.textContent=bankExps.map(e=>e.name).join(" \u00B7 ");
-    const bw=document.createElement("div"); bw.className="bank-bar-wrap";
-    const bf=document.createElement("div"); bf.className="bank-bar-fill"; bf.style.cssText="width:"+pct+"%;background:"+bank.color+";transition:width .8s ease;";
-    bw.append(bf); left.append(nm,its,bw);
-    const right=document.createElement("div"); right.className="bank-right";
-    const spEl=document.createElement("div"); spEl.className="bank-spent"; spEl.textContent=fmt2(sp);
-    const buEl=document.createElement("div"); buEl.className="bank-budget"; buEl.textContent="of "+fmt2(bu)+" \u00B7 "+((bu-sp)<0?"over "+sh(sp-bu):sh(bu-sp)+" left");
-    right.append(spEl,buEl); row.append(left,right); bankCard.append(row);
-  });
-  container.append(bankCard);
-
-  // C. Donut
-  const donutCard=document.createElement("div"); donutCard.className="chart-card";
-  const donutTitle=document.createElement("div"); donutTitle.className="chart-title"; donutTitle.textContent="Where Money Went";
-  const donutSub=document.createElement("div"); donutSub.className="chart-sub"; donutSub.textContent="Share of total spending this month";
-  const donutWrap=document.createElement("div"); donutWrap.className="chart-wrap"; donutWrap.style.height="260px";
-  const donutCanvas=document.createElement("canvas"); donutCanvas.id="chart-donut";
-  donutWrap.append(donutCanvas); donutCard.append(donutTitle,donutSub,donutWrap); container.append(donutCard);
-  const dc=["#4A90D0","#2A7A5A","#C04888","#9A6030","#8A6818","#C04840","#5A9060","#7A58A8","#C07030","#4A7098","#7A8858","#C09050","#5A7878","#A05060","#6A9050"];
-  analyticsCharts["donut"]=new Chart(donutCanvas,{type:"doughnut",data:{labels:EXPENSES.map(e=>e.icon+" "+e.name),datasets:[{data:EXPENSES.map(e=>totalSpent(e.id)),backgroundColor:dc.slice(0,EXPENSES.length),borderWidth:2,borderColor:"#FDFFFE"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:9},padding:6,boxWidth:10}},tooltip:{callbacks:{label:ctx=>ctx.label+": "+fmt2(ctx.raw)+" ("+Math.round(ctx.raw/(ctx.dataset.data.reduce((a,b)=>a+b,0)||1)*100)+"%)"}}}}}});
-
-  // D. Income vs Expenses grouped bar
-  const lineCard=document.createElement("div"); lineCard.className="chart-card";
-  const lineTitle=document.createElement("div"); lineTitle.className="chart-title"; lineTitle.textContent="Income vs Expenses";
-  const lineSub=document.createElement("div"); lineSub.className="chart-sub"; lineSub.textContent="Income received, total budget, and actual spend";
-  const lineWrap=document.createElement("div"); lineWrap.className="chart-wrap"; lineWrap.style.height="200px";
-  const lineCanvas=document.createElement("canvas"); lineCanvas.id="chart-line";
-  lineWrap.append(lineCanvas); lineCard.append(lineTitle,lineSub,lineWrap); container.append(lineCard);
-  const aInc=incRecvd("asad","PKR"),fInc=incRecvd("filza","PKR");
-  const aExpSp=EXPENSES.filter(e=>e.who==="asad").reduce((s,e)=>s+totalSpent(e.id),0);
-  const fExpSp=EXPENSES.filter(e=>e.who==="filza").reduce((s,e)=>s+totalSpent(e.id),0);
-  const aBu=EXPENSES.filter(e=>e.who==="asad").reduce((s,e)=>s+e.budget,0);
-  const fBu=EXPENSES.filter(e=>e.who==="filza").reduce((s,e)=>s+e.budget,0);
-  analyticsCharts["line"]=new Chart(lineCanvas,{type:"bar",data:{labels:["Asad","Filza","Household"],datasets:[{label:"Income",data:[aInc,fInc,aInc+fInc],backgroundColor:"rgba(42,84,56,0.75)",borderRadius:6},{label:"Budget",data:[aBu,fBu,aBu+fBu],backgroundColor:"rgba(138,104,24,0.55)",borderRadius:6},{label:"Spent",data:[aExpSp,fExpSp,aExpSp+fExpSp],backgroundColor:"rgba(168,56,88,0.75)",borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:10},padding:8,boxWidth:10}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+": "+fmt2(ctx.raw)}}},scales:{y:{ticks:{callback:v=>sh(v)},grid:{color:"rgba(0,0,0,.05)"}}}}});
-
-  // E. Smart insights
-  const insCard=document.createElement("div"); insCard.className="chart-card";
-  const insTitle=document.createElement("div"); insTitle.className="chart-title"; insTitle.textContent="Smart Insights";
-  const insSub=document.createElement("div"); insSub.className="chart-sub"; insSub.textContent="Observations about this month";
-  insCard.append(insTitle,insSub);
-  const insights=[];
-  EXPENSES.forEach(e=>{const sp=totalSpent(e.id);if(sp>e.budget)insights.push({ico:"\u26A0\uFE0F",msg:"<strong>"+e.name+"</strong> is over budget by <strong>"+fmt2(sp-e.budget)+"</strong>",warn:true});});
-  const topCat=EXPENSES.reduce((a,b)=>totalSpent(b.id)>totalSpent(a.id)?b:a);
-  if(totalSpent(topCat.id)>0)insights.push({ico:"\uD83D\uDCCA",msg:"Biggest spend: <strong>"+topCat.name+" at "+fmt2(totalSpent(topCat.id))+"</strong>"});
-  const netSav=(aInc+fInc)-(aExpSp+fExpSp);
-  if(netSav>0)insights.push({ico:"\uD83D\uDCB0",msg:"Saved <strong>"+fmt2(netSav)+"</strong> this month after all expenses"});
-  const unspent=EXPENSES.filter(e=>totalSpent(e.id)===0);
-  if(unspent.length>0)insights.push({ico:"\u2705",msg:"<strong>"+unspent.length+" categories</strong> untouched: "+unspent.map(e=>e.name).join(", ")});
-  if(insights.length===0){const em=document.createElement("div");em.style.cssText="font-size:12px;color:var(--sf);font-style:italic;";em.textContent="Log expenses to see insights";insCard.append(em);}
-  insights.forEach(ins=>{const ic=document.createElement("div");ic.className="insight-card"+(ins.warn?" warn":"");const ico=document.createElement("div");ico.className="insight-ico";ico.textContent=ins.ico;const txt=document.createElement("div");txt.className="insight-txt";txt.innerHTML=ins.msg;ic.append(ico,txt);insCard.append(ic);});
-  container.append(insCard);
-}
-
 /* -- PROGRESS GRAPH -- */
 function updateProgressBars(){
   if(!currentUser) return;
@@ -3418,6 +3319,100 @@ function renderSavings(container) {
 }
 
 /* ── RENDER ALL ── */
+/* -- ANALYTICS TAB -- */
+const BANK_DEFS = [
+  {id:"asad_abl",  name:"Asad \u2014 ABL",   who:"asad",  color:"#4A90D0", items:["petrol","shopping","dining"]},
+  {id:"asad_hbl",  name:"Asad \u2014 HBL",   who:"asad",  color:"#2A7A5A", items:["ammi","internet","phone_a","daily_a"]},
+  {id:"filza_hbl", name:"Filza \u2014 HBL",  who:"filza", color:"#C04888", items:["mama","daily_f","misc","phone_f"]},
+  {id:"filza_scb", name:"Filza \u2014 SCB",  who:"filza", color:"#9A6030", items:["grocery","toilet","server","netflix"]},
+];
+let analyticsCharts = {};
+function destroyCharts(){
+  Object.values(analyticsCharts).forEach(c=>{try{c.destroy();}catch(e){}});
+  analyticsCharts={};
+}
+function renderAnalytics(container){
+  container.innerHTML=""; destroyCharts();
+  const fmt2=n=>"PKR "+Math.abs(Math.round(n)).toLocaleString();
+  const sh=n=>{n=Math.abs(Math.round(n));if(n>=100000)return(n/100000).toFixed(1)+"L";if(n>=1000)return Math.round(n/1000)+"K";return n;};
+
+  // A. Spending vs Budget horizontal bar
+  const expCard=document.createElement("div"); expCard.className="chart-card";
+  const expTitle=document.createElement("div"); expTitle.className="chart-title"; expTitle.textContent="Spending vs Budget";
+  const expSub=document.createElement("div"); expSub.className="chart-sub"; expSub.textContent="How much of each category budget is used this month";
+  const expWrap=document.createElement("div"); expWrap.className="chart-wrap"; expWrap.style.height="320px";
+  const expCanvas=document.createElement("canvas"); expCanvas.id="chart-exp";
+  expWrap.append(expCanvas); expCard.append(expTitle,expSub,expWrap); container.append(expCard);
+  const catSpent=EXPENSES.map(e=>totalSpent(e.id));
+  const catColors=EXPENSES.map((e,i)=>{const p=e.budget>0?catSpent[i]/e.budget:0;return p>=1?"rgba(168,56,88,0.85)":p>=0.75?"rgba(184,133,10,0.85)":"rgba(42,84,56,0.85)";});
+  analyticsCharts["exp"]=new Chart(expCanvas,{type:"bar",data:{labels:EXPENSES.map(e=>e.icon+" "+e.name),datasets:[{label:"Spent",data:catSpent,backgroundColor:catColors,borderRadius:4},{label:"Budget",data:EXPENSES.map(e=>e.budget),backgroundColor:"rgba(200,218,200,0.25)",borderRadius:4}]},options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>fmt2(ctx.raw)}}},scales:{x:{ticks:{callback:v=>sh(v)},grid:{color:"rgba(0,0,0,.05)"}},y:{ticks:{font:{size:10}}}}}});
+
+  // B. Bank breakdown
+  const bankCard=document.createElement("div"); bankCard.className="chart-card";
+  const bankTitle=document.createElement("div"); bankTitle.className="chart-title"; bankTitle.textContent="Bank Account Breakdown";
+  const bankSub=document.createElement("div"); bankSub.className="chart-sub"; bankSub.textContent="Budget vs spent per account";
+  bankCard.append(bankTitle,bankSub);
+  BANK_DEFS.forEach(bank=>{
+    const bankExps=EXPENSES.filter(e=>bank.items.includes(e.id));
+    const bu=bankExps.reduce((s,e)=>s+e.budget,0);
+    const sp=bankExps.reduce((s,e)=>s+totalSpent(e.id),0);
+    const pct=bu>0?Math.min(100,Math.round(sp/bu*100)):0;
+    const row=document.createElement("div"); row.className="bank-row";
+    const left=document.createElement("div"); left.className="bank-left";
+    const nm=document.createElement("div"); nm.className="bank-name"; nm.textContent=bank.name;
+    const its=document.createElement("div"); its.className="bank-items"; its.textContent=bankExps.map(e=>e.name).join(" \u00B7 ");
+    const bw=document.createElement("div"); bw.className="bank-bar-wrap";
+    const bf=document.createElement("div"); bf.className="bank-bar-fill"; bf.style.cssText="width:"+pct+"%;background:"+bank.color+";transition:width .8s ease;";
+    bw.append(bf); left.append(nm,its,bw);
+    const right=document.createElement("div"); right.className="bank-right";
+    const spEl=document.createElement("div"); spEl.className="bank-spent"; spEl.textContent=fmt2(sp);
+    const buEl=document.createElement("div"); buEl.className="bank-budget"; buEl.textContent="of "+fmt2(bu)+" \u00B7 "+((bu-sp)<0?"over "+sh(sp-bu):sh(bu-sp)+" left");
+    right.append(spEl,buEl); row.append(left,right); bankCard.append(row);
+  });
+  container.append(bankCard);
+
+  // C. Donut
+  const donutCard=document.createElement("div"); donutCard.className="chart-card";
+  const donutTitle=document.createElement("div"); donutTitle.className="chart-title"; donutTitle.textContent="Where Money Went";
+  const donutSub=document.createElement("div"); donutSub.className="chart-sub"; donutSub.textContent="Share of total spending this month";
+  const donutWrap=document.createElement("div"); donutWrap.className="chart-wrap"; donutWrap.style.height="260px";
+  const donutCanvas=document.createElement("canvas"); donutCanvas.id="chart-donut";
+  donutWrap.append(donutCanvas); donutCard.append(donutTitle,donutSub,donutWrap); container.append(donutCard);
+  const dc=["#4A90D0","#2A7A5A","#C04888","#9A6030","#8A6818","#C04840","#5A9060","#7A58A8","#C07030","#4A7098","#7A8858","#C09050","#5A7878","#A05060","#6A9050"];
+  analyticsCharts["donut"]=new Chart(donutCanvas,{type:"doughnut",data:{labels:EXPENSES.map(e=>e.icon+" "+e.name),datasets:[{data:EXPENSES.map(e=>totalSpent(e.id)),backgroundColor:dc.slice(0,EXPENSES.length),borderWidth:2,borderColor:"#FDFFFE"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:9},padding:6,boxWidth:10}},tooltip:{callbacks:{label:ctx=>ctx.label+": "+fmt2(ctx.raw)+" ("+Math.round(ctx.raw/(ctx.dataset.data.reduce((a,b)=>a+b,0)||1)*100)+"%)"}}}}}});
+
+  // D. Income vs Expenses grouped bar
+  const lineCard=document.createElement("div"); lineCard.className="chart-card";
+  const lineTitle=document.createElement("div"); lineTitle.className="chart-title"; lineTitle.textContent="Income vs Expenses";
+  const lineSub=document.createElement("div"); lineSub.className="chart-sub"; lineSub.textContent="Income received, total budget, and actual spend";
+  const lineWrap=document.createElement("div"); lineWrap.className="chart-wrap"; lineWrap.style.height="200px";
+  const lineCanvas=document.createElement("canvas"); lineCanvas.id="chart-line";
+  lineWrap.append(lineCanvas); lineCard.append(lineTitle,lineSub,lineWrap); container.append(lineCard);
+  const aInc=incRecvd("asad","PKR"),fInc=incRecvd("filza","PKR");
+  const aExpSp=EXPENSES.filter(e=>e.who==="asad").reduce((s,e)=>s+totalSpent(e.id),0);
+  const fExpSp=EXPENSES.filter(e=>e.who==="filza").reduce((s,e)=>s+totalSpent(e.id),0);
+  const aBu=EXPENSES.filter(e=>e.who==="asad").reduce((s,e)=>s+e.budget,0);
+  const fBu=EXPENSES.filter(e=>e.who==="filza").reduce((s,e)=>s+e.budget,0);
+  analyticsCharts["line"]=new Chart(lineCanvas,{type:"bar",data:{labels:["Asad","Filza","Household"],datasets:[{label:"Income",data:[aInc,fInc,aInc+fInc],backgroundColor:"rgba(42,84,56,0.75)",borderRadius:6},{label:"Budget",data:[aBu,fBu,aBu+fBu],backgroundColor:"rgba(138,104,24,0.55)",borderRadius:6},{label:"Spent",data:[aExpSp,fExpSp,aExpSp+fExpSp],backgroundColor:"rgba(168,56,88,0.75)",borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:10},padding:8,boxWidth:10}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+": "+fmt2(ctx.raw)}}},scales:{y:{ticks:{callback:v=>sh(v)},grid:{color:"rgba(0,0,0,.05)"}}}}});
+
+  // E. Smart insights
+  const insCard=document.createElement("div"); insCard.className="chart-card";
+  const insTitle=document.createElement("div"); insTitle.className="chart-title"; insTitle.textContent="Smart Insights";
+  const insSub=document.createElement("div"); insSub.className="chart-sub"; insSub.textContent="Observations about this month";
+  insCard.append(insTitle,insSub);
+  const insights=[];
+  EXPENSES.forEach(e=>{const sp=totalSpent(e.id);if(sp>e.budget)insights.push({ico:"\u26A0\uFE0F",msg:"<strong>"+e.name+"</strong> is over budget by <strong>"+fmt2(sp-e.budget)+"</strong>",warn:true});});
+  const topCat=EXPENSES.reduce((a,b)=>totalSpent(b.id)>totalSpent(a.id)?b:a);
+  if(totalSpent(topCat.id)>0)insights.push({ico:"\uD83D\uDCCA",msg:"Biggest spend: <strong>"+topCat.name+" at "+fmt2(totalSpent(topCat.id))+"</strong>"});
+  const netSav=(aInc+fInc)-(aExpSp+fExpSp);
+  if(netSav>0)insights.push({ico:"\uD83D\uDCB0",msg:"Saved <strong>"+fmt2(netSav)+"</strong> this month after all expenses"});
+  const unspent=EXPENSES.filter(e=>totalSpent(e.id)===0);
+  if(unspent.length>0)insights.push({ico:"\u2705",msg:"<strong>"+unspent.length+" categories</strong> untouched: "+unspent.map(e=>e.name).join(", ")});
+  if(insights.length===0){const em=document.createElement("div");em.style.cssText="font-size:12px;color:var(--sf);font-style:italic;";em.textContent="Log expenses to see insights";insCard.append(em);}
+  insights.forEach(ins=>{const ic=document.createElement("div");ic.className="insight-card"+(ins.warn?" warn":"");const ico=document.createElement("div");ico.className="insight-ico";ico.textContent=ins.ico;const txt=document.createElement("div");txt.className="insight-txt";txt.innerHTML=ins.msg;ic.append(ico,txt);insCard.append(ic);});
+  container.append(insCard);
+}
+
 function renderAll() {
   if(!currentUser) return;
   updateProgressBars();
@@ -3451,8 +3446,8 @@ document.getElementById("next").onclick=()=>{cm++;if(cm>11){cm=0;cy++;}openCats.
 document.getElementById("ms-fab").addEventListener("click", ()=>{ SFX.dream(); openMilestones(); });
 document.getElementById("ms-popup").addEventListener("click", function(e){ if(e.target===this) closeMilestones(); });
 document.getElementById("ms-detail").addEventListener("click", function(e){ if(e.target===this) closeMsDetail(); });
-(function(){const e=document.querySelector(".ms-pop-close");if(e)e.addEventListener("click",closeMilestones);})();
-(function(){const e=document.querySelector(".ms-close-btn");if(e)e.addEventListener("click",closeMsDetail);})();
+document.querySelector(".ms-pop-close").addEventListener("click", closeMilestones);
+document.querySelector(".ms-close-btn").addEventListener("click", closeMsDetail);
 
 // subscribe() is called inside checkSession() above if session exists,
 // or inside doLogin() after successful login
