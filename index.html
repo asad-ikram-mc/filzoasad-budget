@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0A1A10"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/><!-- v7.2 -->
+<meta http-equiv="Expires" content="0"/><!-- v7.3 -->
 <!-- v3.1 -->
 <title>Asad &amp; Filza</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -2462,6 +2462,7 @@ async function doLogin(){
   saveSession(loginWho);
   document.getElementById("login-pass").value="";
   document.getElementById("login-page").classList.add("hidden");
+  setTimeout(seedAprilAnalysis, 2000);
   document.getElementById("logged-in-as").textContent =
     "Logged in as " + loginWho.charAt(0).toUpperCase() + loginWho.slice(1);
   btn.disabled=false; btn.textContent="Sign in"; btn.style.opacity="";
@@ -2553,6 +2554,23 @@ function initRaceTooltip(){
     }
   });
 }
+
+/* -- SEED APRIL ANALYSIS -- */
+async function seedAprilAnalysis(){
+  if(!currentUser) return;
+  try{
+    const snap = await get(ref(db,'af/claude_summary/2026_04'));
+    if(snap.val()) return;
+    await set(ref(db,'af/claude_summary/2026_04'),{
+      text: "SUMMARY\nApril 2026 was a solid month for Asad & Filza overall. Asad came in right on budget at PKR 2.1L spent, showing great discipline across petrol, dining, and shopping. The household net saving of PKR 8.3L is impressive and keeps your dreams firmly on track. One watch area: Filza ran PKR 40-50K over her monthly budget this month.\n\nRECOMMENDATIONS\n1. Review Grocery and Miscellaneous - Filza spent PKR 2.3L against a PKR 1.9L budget. Identify which categories pushed over and set a mid-month check for May. 2. With Asad M+C pay increasing to PKR 966K from May, consider routing the extra PKR 366K directly to Pakistan Savings before it touches spending accounts. 3. Filza saved -75K this month meaning expenses exceeded income received. Confirm all income sources are marked received in the app to get an accurate picture.\n\nTIP OF THE MONTH\nYou saved PKR 8.3L as a household this April. At this rate, your Jaecoo J5 dream of PKR 50L is just 6 months away. The key habit to protect: treat savings like a fixed expense that comes out on the 1st, not whatever is left at the end of the month.",
+      month: '2026_04',
+      savedAt: Date.now(),
+      savedBy: 'claude-seeded'
+    });
+    console.log('April 2026 analysis seeded to Firebase');
+  }catch(e){ console.log('Seed failed:',e); }
+}
+
 window.initRaceTooltip=initRaceTooltip;
 
 subscribe();
