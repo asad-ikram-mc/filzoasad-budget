@@ -2442,8 +2442,13 @@ async function doLogin(){
 }
 
 document.getElementById("login-submit").addEventListener("click", doLogin);
+(function(){
+  const ba=document.getElementById("btn-asad"); if(ba) ba.addEventListener("click",()=>selectWho("asad"));
+  const bf=document.getElementById("btn-filza"); if(bf) bf.addEventListener("click",()=>selectWho("filza"));
+})();
 document.getElementById("login-pass").addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); });
 document.getElementById("login-pass").addEventListener("input", ()=>{ const el=document.getElementById("login-err"); el.textContent=""; el.className="login-error"; });
+document.getElementById("login-pass").addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); });
 document.getElementById("toggle-pass").addEventListener("click", ()=>{
   const inp = document.getElementById("login-pass");
   const btn = document.getElementById("toggle-pass");
