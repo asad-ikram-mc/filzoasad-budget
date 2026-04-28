@@ -3379,7 +3379,19 @@ function renderAnalytics(container){
   const donutCanvas=document.createElement("canvas"); donutCanvas.id="chart-donut";
   donutWrap.append(donutCanvas); donutCard.append(donutTitle,donutSub,donutWrap); container.append(donutCard);
   const dc=["#4A90D0","#2A7A5A","#C04888","#9A6030","#8A6818","#C04840","#5A9060","#7A58A8","#C07030","#4A7098","#7A8858","#C09050","#5A7878","#A05060","#6A9050"];
-  analyticsCharts["donut"]=new Chart(donutCanvas,{type:"doughnut",data:{labels:EXPENSES.map(e=>e.icon+" "+e.name),datasets:[{data:EXPENSES.map(e=>totalSpent(e.id)),backgroundColor:dc.slice(0,EXPENSES.length),borderWidth:2,borderColor:"#FDFFFE"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:9},padding:6,boxWidth:10}},tooltip:{callbacks:{label:ctx=>ctx.label+": "+fmt2(ctx.raw)+" ("+Math.round(ctx.raw/(ctx.dataset.data.reduce((a,b)=>a+b,0)||1)*100)+"%)"}}}}}});
+  analyticsCharts["donut"]=new Chart(donutCanvas,{
+    type:"doughnut",
+    data:{labels:EXPENSES.map(e=>e.icon+" "+e.name),datasets:[{data:EXPENSES.map(e=>totalSpent(e.id)),backgroundColor:dc.slice(0,EXPENSES.length),borderWidth:2,borderColor:"#FDFFFE"}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{position:"bottom",labels:{font:{size:9},padding:6,boxWidth:10}},
+        tooltip:{callbacks:{label:function(ctx){
+          var total=ctx.dataset.data.reduce(function(a,b){return a+b;},0)||1;
+          return ctx.label+": "+fmt2(ctx.raw)+" ("+Math.round(ctx.raw/total*100)+"%)";
+        }}}
+      }
+    }
+  });
 
   // D. Income vs Expenses grouped bar
   const lineCard=document.createElement("div"); lineCard.className="chart-card";
