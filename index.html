@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0A1A10"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/><!-- v6.3 -->
+<meta http-equiv="Expires" content="0"/><!-- v6.4 -->
 <!-- v3.1 -->
 <title>Asad &amp; Filza</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -197,16 +197,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 
 /* ── RESPONSIVE LAYOUT ── */
 @media(min-width:768px){
-  body{max-width:100%;margin:0;}
-  .topbar{max-width:100%;}
-  .topbar-inner{max-width:960px;margin:0 auto;}
-  .view,.split-view{max-width:960px;margin:0 auto;}
-  #progress-panel{max-width:100%;}
-  .hero{max-height:320px;}
-  .topbar{max-width:480px;}
-  .progress-panel{max-width:480px;}
-  /* Desktop sidebar hint */
-  body::before{content:"";position:fixed;inset:0;background:#E8EDE9;z-index:-1;}
+  body{max-width:100%;margin:0;background:#E8EDE9;}
+  .topbar{max-width:100%;position:sticky;top:0;}
+  .topbar-inner{max-width:900px;margin:0 auto;padding:.9rem 2rem 0;}
+  .hero{max-height:360px;}
+  #progress-panel,.progress-panel{max-width:100%;}
+  .view{max-width:900px;margin:0 auto;padding:.85rem 2rem 4rem;}
+  .split-view{max-width:900px;margin:0 auto;padding:.5rem 2rem 4rem;}
+  #split-sum-row{max-width:900px;margin:0 auto;}
+  .ms-fab{right:calc(50% - 450px + 1.1rem);}
 }
 
 /* Canvas chart */
