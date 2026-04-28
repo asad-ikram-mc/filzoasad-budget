@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0A1A10"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/><!-- v6.7 -->
+<meta http-equiv="Expires" content="0"/><!-- v6.8 -->
 <!-- v3.1 -->
 <title>Asad &amp; Filza</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -198,12 +198,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 /* ── RESPONSIVE LAYOUT ── */
 @media(min-width:768px){
   body{max-width:none;margin:0;background:#E8EDE9;}
-  .topbar-inner,.view.on,.split-view.on,#split-sum-row{max-width:900px;margin-left:auto;margin-right:auto;}
+  .topbar{max-width:none;width:100%;}
+  .topbar-inner{max-width:900px;margin:0 auto;}
+  .progress-panel{max-width:none;width:100%;}
+  .prog-graph-wrap{max-width:900px;margin:0 auto;}
+  .view.on,.split-view.on,#split-sum-row{max-width:900px;margin:0 auto;}
   .ms-fab{right:calc((100vw - 900px)/2 + 1.1rem);}
-  .topbar{max-width:480px;}
-  .progress-panel{max-width:480px;}
-  /* Desktop sidebar hint */
-  body::before{content:"";position:fixed;inset:0;background:#E8EDE9;z-index:-1;}
 }
 
 /* Canvas chart */
@@ -686,6 +686,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 .insight-txt{font-size:12px;color:var(--md);line-height:1.5;}
 .insight-txt strong{color:var(--grn);}
 .insight-card.warn .insight-txt strong{color:var(--amber);}
+
+.race-tooltip{position:fixed;background:rgba(5,14,7,0.95);color:#EDF8EF;border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:10px 14px;font-size:12px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:300;box-shadow:0 4px 20px rgba(0,0,0,.5);min-width:180px;}
+.race-tooltip.show{opacity:1;}
+.rt-name{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;opacity:.7;}
+.rt-row{display:flex;justify-content:space-between;gap:20px;line-height:1.7;font-size:11px;}
+.rt-val{font-weight:600;font-family:'Cormorant Garamond',serif;font-size:13px;}
 /* TOAST */
 .toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(12px);background:var(--dk);color:#EDF8EF;padding:11px 22px;border-radius:26px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;z-index:999;white-space:nowrap;transition:opacity .3s,transform .3s cubic-bezier(.2,.85,.3,1);box-shadow:0 8px 28px rgba(0,0,0,.4);display:flex;align-items:center;gap:8px;max-width:90vw;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
@@ -729,6 +735,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
   </div>
 </div>
 
+<div class="race-tooltip" id="race-tip" style="display:none"><div class="rt-name" id="rt-nm"></div><div class="rt-row"><span>Spent</span><span class="rt-val" id="rt-sp"></span></div><div class="rt-row"><span>Budget</span><span class="rt-val" id="rt-bu"></span></div><div class="rt-row"><span>Remaining</span><span class="rt-val" id="rt-rm"></span></div><div class="rt-row"><span>Net Saved</span><span class="rt-val" id="rt-sv"></span></div></div>
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-inner">
@@ -1024,7 +1031,7 @@ const dbp  = (...p) => "af/"+mkey(cy,cm)+"/"+p.join("/");
 
 const INCOME = [
   {id:"filza_sal",who:"filza",name:"Filza \u2014 Salary",    src:"Monthly",             exp:150000,cur:"PKR",note:"Regular monthly salary"},
-  {id:"asad_mc",  who:"asad", name:"Asad \u2014 M&C Saatchi",src:"M&C Saatchi Fluency", exp:600000,cur:"PKR",note:"PKR 600K Apr, 966K from May"},
+  {id:"asad_mc",  who:"asad", name:"Asad \u2014 M&C Saatchi",src:"M&C Saatchi Fluency", exp:(()=>{const d=new Date(cy,cm);return(d>=new Date(2026,4))?966000:600000;})(),cur:"PKR",note:"PKR 600K (Apr) / PKR 966K (May onwards)"},
   {id:"asad_free",who:"asad", name:"Asad \u2014 Freelance",  src:"Various clients",      exp:515000,cur:"PKR",note:"Net after Muteeb (-185K)"},
   {id:"asad_fix", who:"asad", name:"Asad \u2014 Fix.com",    src:"Fix.com UK (Lloyds)",  exp:2900,  cur:"GBP",note:"Stays in Lloyds UK \u2014 NOT in Pakistan pool"},
 ];
@@ -1033,14 +1040,14 @@ const EXPENSES = [
   {id:"petrol",  who:"asad", name:"Petrol",       icon:"\u26FD",bg:"#E6F2EA",budget:30000,acct:"ABL"},
   {id:"shopping",who:"asad", name:"Shopping",     icon:"\uD83D\uDECD",bg:"#EEF0F8",budget:40000,acct:"ABL"},
   {id:"dining",  who:"asad", name:"Dining Out",   icon:"\uD83C\uDF7D",bg:"#F5EDEA",budget:40000,acct:"ABL"},
-  {id:"daily_a", who:"asad", name:"Daily Expense",icon:"\uD83D\uDCC5",bg:"#EDF4EE",budget:20000,acct:"HBL"},
+  {id:"daily_a", who:"asad", name:"Daily Expense",icon:"\uD83D\uDCC5",bg:"#EDF4EE",budget:(()=>{const d=new Date(cy,cm);return(d>=new Date(2026,4))?30000:20000;})(),acct:"HBL"},
   {id:"ammi",    who:"asad", name:"Ammi",         icon:"\uD83D\uDC9D",bg:"#F8EEF4",budget:50000,acct:"HBL"},
   {id:"internet",who:"asad", name:"Internet Bill",icon:"\uD83C\uDF10",bg:"#E8F4F2",budget:14000,acct:"HBL"},
   {id:"phone_a", who:"asad", name:"Phone (Asad)", icon:"\uD83D\uDCF1",bg:"#EAF5E8",budget:5000, acct:"HBL"},
   {id:"grocery", who:"filza",name:"Grocery",      icon:"\uD83D\uDED2",bg:"#EAF5EC",budget:50000,acct:"SCB"},
   {id:"mama",    who:"filza",name:"Mama",         icon:"\uD83E\uDD32",bg:"#EAF0FA",budget:50000,acct:"HBL"},
   {id:"toilet",  who:"filza",name:"Toiletries",   icon:"\uD83E\uDDF4",bg:"#F5F0E8",budget:15000,acct:"SCB"},
-  {id:"daily_f", who:"filza",name:"Daily Expense",icon:"\uD83D\uDCC5",bg:"#EDF4EE",budget:20000,acct:"HBL"},
+  {id:"daily_f", who:"filza",name:"Daily Expense",icon:"\uD83D\uDCC5",bg:"#EDF4EE",budget:(()=>{const d=new Date(cy,cm);return(d>=new Date(2026,4))?30000:20000;})(),acct:"HBL"},
   {id:"misc",    who:"filza",name:"Miscellaneous",icon:"\uD83D\uDCE6",bg:"#F0EEE8",budget:30000,acct:"HBL"},
   {id:"phone_f", who:"filza",name:"Phone (Filza)",icon:"\uD83D\uDCF1",bg:"#EAF5E8",budget:5000, acct:"HBL"},
   {id:"server",  who:"filza",name:"Server Sub",        icon:"\uD83D\uDCBB",bg:"#E8F0FA",budget:10000,acct:"SCB"},
@@ -2476,7 +2483,61 @@ document.getElementById("logout-btn").addEventListener("click",()=>{
     currentUser = s.who;
     document.getElementById("logged-in-as").textContent = "\uD83D\uDC4B Logged in as "+s.who.charAt(0).toUpperCase()+s.who.slice(1);
     document.getElementById("login-page").classList.add("hidden");
-    subscribe();
+    
+/* -- RACE TOOLTIP -- */
+function initRaceTooltip(){
+  var tip=document.getElementById("race-tip");
+  if(!tip) return;
+  var svg=document.getElementById("prog-svg");
+  if(!svg) return;
+  function sh(n){n=Math.abs(Math.round(n));if(n>=100000)return(n/100000).toFixed(1)+"L";if(n>=1000)return Math.round(n/1000)+"K";return String(n);}
+  function showTip(who,x,y){
+    var aE=EXPENSES.filter(function(e){return e.who==="asad";});
+    var fE=EXPENSES.filter(function(e){return e.who==="filza";});
+    var aBu=aE.reduce(function(s,e){return s+e.budget;},0);
+    var fBu=fE.reduce(function(s,e){return s+e.budget;},0);
+    var aSp=aE.reduce(function(s,e){return s+totalSpent(e.id);},0);
+    var fSp=fE.reduce(function(s,e){return s+totalSpent(e.id);},0);
+    var aIn=incRecvd("asad","PKR"),fIn=incRecvd("filza","PKR");
+    var nm,sp,bu,sv;
+    if(who==="asad"){nm="Asad";sp=aSp;bu=aBu;sv=aIn-aSp;}
+    else if(who==="filza"){nm="Filza";sp=fSp;bu=fBu;sv=fIn-fSp;}
+    else{nm="Household";sp=aSp+fSp;bu=aBu+fBu;sv=(aIn+fIn)-(aSp+fSp);}
+    var rem=bu-sp;
+    document.getElementById("rt-nm").textContent=nm;
+    document.getElementById("rt-sp").textContent="PKR "+Math.abs(Math.round(sp)).toLocaleString()+" ("+sh(sp)+")";
+    document.getElementById("rt-bu").textContent="PKR "+Math.abs(Math.round(bu)).toLocaleString()+" ("+sh(bu)+")";
+    document.getElementById("rt-rm").textContent=(rem<0?"-":"")+sh(Math.abs(rem))+(rem<0?" over":" left");
+    document.getElementById("rt-sv").textContent=(sv<0?"-":"+")+sh(Math.abs(sv));
+    tip.style.display="block";
+    tip.style.left=Math.min(x+12,window.innerWidth-200)+"px";
+    tip.style.top=Math.max(y-80,10)+"px";
+    tip.classList.add("show");
+  }
+  function hideTip(){tip.classList.remove("show");setTimeout(function(){tip.style.display="none";},150);}
+  var trackDefs=[{who:"asad",y:10,h:30},{who:"filza",y:45,h:30},{who:"both",y:80,h:30}];
+  trackDefs.forEach(function(t){
+    var r=document.createElementNS("http://www.w3.org/2000/svg","rect");
+    r.setAttribute("x","30");r.setAttribute("y",String(t.y));
+    r.setAttribute("width","287");r.setAttribute("height",String(t.h));
+    r.setAttribute("fill","transparent");r.style.cursor="pointer";
+    r.addEventListener("mouseenter",function(e){showTip(t.who,e.clientX,e.clientY);});
+    r.addEventListener("mousemove",function(e){showTip(t.who,e.clientX,e.clientY);});
+    r.addEventListener("mouseleave",hideTip);
+    svg.appendChild(r);
+  });
+  [["pa","asad"],["pf","filza"],["pb","both"]].forEach(function(pair){
+    var card=document.getElementById(pair[0]+"-sp");
+    if(card&&card.parentElement){
+      card.parentElement.style.cursor="pointer";
+      card.parentElement.addEventListener("mouseenter",function(e){showTip(pair[1],e.clientX,e.clientY);});
+      card.parentElement.addEventListener("mouseleave",hideTip);
+    }
+  });
+}
+window.initRaceTooltip=initRaceTooltip;
+
+subscribe();
   }
   // else: login-page already has class="show" from HTML so it appears instantly
 })();
@@ -3430,6 +3491,7 @@ function renderAnalytics(container){
 function renderAll() {
   if(!currentUser) return;
   updateProgressBars();
+  setTimeout(initRaceTooltip,200);
   document.getElementById("mlabel").textContent=MONTHS[cm]+" "+cy;
   if(currentView==="combined")  renderCombined(document.getElementById("view-combined"));
   else if(currentView==="asad")  renderAsad(document.getElementById("view-asad"));
@@ -3438,6 +3500,7 @@ function renderAll() {
   else if(currentView==="activity") renderActivity(document.getElementById("view-activity"));
   else if(currentView==="secured")  renderSecured(document.getElementById("view-secured"));
   else if(currentView==="savings")  renderSavings(document.getElementById("view-savings"));
+  else if(currentView==="analytics"){ destroyCharts(); renderAnalytics(document.getElementById("view-analytics")); }
 }
 
 /* ── TABS ── */
