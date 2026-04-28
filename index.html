@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0A1A10"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/><!-- v6.6 -->
+<meta http-equiv="Expires" content="0"/><!-- v6.7 -->
 <!-- v3.1 -->
 <title>Asad &amp; Filza</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -28,7 +28,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{min-height:100%;overscroll-behavior:none;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);padding-bottom:5rem;scroll-padding-top:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);padding-bottom:5rem;}
 
 
 /* ══ LOGIN PAGE ══ */
@@ -197,12 +197,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 
 /* ── RESPONSIVE LAYOUT ── */
 @media(min-width:768px){
-  body{background:#E8EDE9;}
-  .topbar-inner{max-width:900px;margin:0 auto;}
-  .view.on{max-width:900px;margin:0 auto;padding:.85rem 2rem 4rem;}
-  .split-view.on{max-width:900px;margin:0 auto;padding:.5rem 2rem 4rem;gap:10px;}
-  #split-sum-row{max-width:900px;margin:0 auto;}
+  body{max-width:none;margin:0;background:#E8EDE9;}
+  .topbar-inner,.view.on,.split-view.on,#split-sum-row{max-width:900px;margin-left:auto;margin-right:auto;}
   .ms-fab{right:calc((100vw - 900px)/2 + 1.1rem);}
+  .topbar{max-width:480px;}
+  .progress-panel{max-width:480px;}
+  /* Desktop sidebar hint */
+  body::before{content:"";position:fixed;inset:0;background:#E8EDE9;z-index:-1;}
 }
 
 /* Canvas chart */
@@ -306,12 +307,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 /* == FINISH LINE PROGRESS GRAPH == */
 .progress-panel{background:linear-gradient(180deg,#040D07 0%,#081A0F 60%,#0C2016 100%);padding:.7rem 1rem 1rem;border-bottom:1px solid rgba(255,255,255,.06);}
 .prog-panel-title{font-size:9px;font-weight:600;color:rgba(200,168,60,0.45);text-transform:uppercase;letter-spacing:1.8px;text-align:center;margin-bottom:.55rem;}
-
-.race-tooltip{position:absolute;background:rgba(5,14,7,0.95);color:#EDF8EF;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 12px;font-size:11px;pointer-events:none;opacity:0;transition:opacity .2s;z-index:50;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.4);}
-.race-tooltip.show{opacity:1;}
-.race-tooltip-name{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
-.race-tooltip-row{display:flex;justify-content:space-between;gap:16px;font-size:11px;line-height:1.6;}
-.race-tooltip-val{font-weight:600;}
 .prog-graph-wrap{position:relative;width:100%;}
 #prog-svg{width:100%;display:block;overflow:visible;}
 .prog-legend{display:flex;justify-content:center;gap:16px;margin-top:.45rem;}
@@ -321,9 +316,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 .prog-leg-dot.filza{background:#C04888;}
 .prog-leg-dot.both{background:#C09030;}
 .prog-stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:.6rem;}
-.prog-stat-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:9px 8px 8px;text-align:center;cursor:default;transition:background .2s;}
-.prog-stat-card:hover{background:rgba(255,255,255,.09);}
-
+.prog-stat-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:6px 8px;text-align:center;}
 .prog-stat-name{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;}
 .prog-stat-name.asad{color:rgba(74,144,208,.85);}
 .prog-stat-name.filza{color:rgba(192,72,136,.85);}
@@ -343,7 +336,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 .hero-quote{font-family:'Cormorant Garamond',serif;font-size:15px;font-style:italic;color:rgba(220,245,225,0.72);}
 
 /* TOPBAR */
-.topbar{background:linear-gradient(165deg,#050E07 0%,#0A1F10 30%,#122E18 60%,#1A4520 100%);position:sticky;top:0;z-index:100;min-height:40px;padding:env(safe-area-inset-top,0) 0 0;}
+.topbar{background:linear-gradient(165deg,#050E07 0%,#0A1F10 30%,#122E18 60%,#1A4520 100%);position:sticky;top:0;z-index:100;padding:env(safe-area-inset-top,0) 0 0;}
 .topbar-inner{padding:.9rem 1.1rem 0;}
 .brand-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:.45rem;position:relative;}
 .sync-wrap{position:absolute;right:0;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:4px;}
@@ -733,7 +726,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
   <div class="hero-content">
     <div class="hero-eyebrow">❤</div>
     <div class="hero-quote">"Building our future, one month at a time"</div>
-  <div class="race-tooltip" id="race-tooltip"><div class="race-tooltip-name" id="rt-name"></div><div class="race-tooltip-row"><span>Spent</span><span class="race-tooltip-val" id="rt-spent"></span></div><div class="race-tooltip-row"><span>Budget</span><span class="race-tooltip-val" id="rt-budget"></span></div><div class="race-tooltip-row"><span>Remaining</span><span class="race-tooltip-val" id="rt-rem"></span></div><div class="race-tooltip-row"><span>Net Saved</span><span class="race-tooltip-val" id="rt-saved"></span></div></div>
+  </div>
 </div>
 
 <!-- TOPBAR -->
@@ -896,15 +889,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
     <div class="prog-stat-card">
       <div class="prog-stat-name asad">Asad</div>
       <div class="prog-stat-spent2"  id="pa-sp">—</div>
-      <div class="prog-stat-budget2" id="pa-bu">— budget</div>
-      <div class="prog-stat-budget2" id="pa-rem">— left</div>
+      <div class="prog-stat-budget2" id="pa-bu">of —</div>
       <div class="prog-stat-saved2"  id="pa-sv">— saved</div>
     </div>
     <div class="prog-stat-card">
       <div class="prog-stat-name filza">Filza</div>
       <div class="prog-stat-spent2"  id="pf-sp">—</div>
-      <div class="prog-stat-budget2" id="pf-bu">— budget</div>
-      <div class="prog-stat-budget2" id="pf-rem">— left</div>
+      <div class="prog-stat-budget2" id="pf-bu">of —</div>
       <div class="prog-stat-saved2"  id="pf-sv">— saved</div>
     </div>
     <div class="prog-stat-card">
@@ -1033,7 +1024,7 @@ const dbp  = (...p) => "af/"+mkey(cy,cm)+"/"+p.join("/");
 
 const INCOME = [
   {id:"filza_sal",who:"filza",name:"Filza \u2014 Salary",    src:"Monthly",             exp:150000,cur:"PKR",note:"Regular monthly salary"},
-  {id:"asad_mc",  who:"asad", name:"Asad \u2014 M&C Saatchi",src:"M&C Saatchi Fluency", exp:600000,cur:"PKR",note:"PKR 600K Apr \u2014 PKR 966K from May onwards"},
+  {id:"asad_mc",  who:"asad", name:"Asad \u2014 M&C Saatchi",src:"M&C Saatchi Fluency", exp:600000,cur:"PKR",note:"PKR 600K Apr, 966K from May"},
   {id:"asad_free",who:"asad", name:"Asad \u2014 Freelance",  src:"Various clients",      exp:515000,cur:"PKR",note:"Net after Muteeb (-185K)"},
   {id:"asad_fix", who:"asad", name:"Asad \u2014 Fix.com",    src:"Fix.com UK (Lloyds)",  exp:2900,  cur:"GBP",note:"Stays in Lloyds UK \u2014 NOT in Pakistan pool"},
 ];
@@ -2599,78 +2590,6 @@ function renderActivity(container){
   });
 }
 
-
-/* -- RACE TOOLTIP -- */
-(function(){
-  function setupRaceTooltip(){
-    const svg = document.getElementById("prog-svg");
-    const tip = document.getElementById("race-tooltip");
-    if(!svg||!tip) return;
-
-    function sh(n){n=Math.abs(Math.round(n));if(n>=100000)return(n/100000).toFixed(1)+"L";if(n>=1000)return Math.round(n/1000)+"K";return String(n);}
-    function fmt(n){return "PKR "+Math.abs(Math.round(n)).toLocaleString();}
-
-    function showTip(who, x, y){
-      const aExp=EXPENSES.filter(e=>e.who==="asad");
-      const fExp=EXPENSES.filter(e=>e.who==="filza");
-      const aBu=aExp.reduce((s,e)=>s+e.budget,0), aSp=aExp.reduce((s,e)=>s+totalSpent(e.id),0);
-      const fBu=fExp.reduce((s,e)=>s+e.budget,0), fSp=fExp.reduce((s,e)=>s+totalSpent(e.id),0);
-      const aInc=incRecvd("asad","PKR"), fInc=incRecvd("filza","PKR");
-
-      let name, sp, bu, sv;
-      if(who==="asad"){ name="Asad"; sp=aSp; bu=aBu; sv=aInc-aSp; }
-      else if(who==="filza"){ name="Filza"; sp=fSp; bu=fBu; sv=fInc-fSp; }
-      else { name="Household"; sp=aSp+fSp; bu=aBu+fBu; sv=(aInc+fInc)-(aSp+fSp); }
-
-      const rem = bu-sp;
-      document.getElementById("rt-name").textContent=name;
-      document.getElementById("rt-spent").textContent=sh(sp)+" ("+fmt(sp)+")";
-      document.getElementById("rt-budget").textContent=sh(bu)+" ("+fmt(bu)+")";
-      document.getElementById("rt-rem").textContent=(rem<0?"-":"")+sh(Math.abs(rem))+(rem<0?" over":" remaining");
-      document.getElementById("rt-saved").textContent=(sv<0?"-":"+")+sh(Math.abs(sv));
-
-      const pp = document.getElementById("progress-panel");
-      const rect = pp ? pp.getBoundingClientRect() : {left:0,top:0};
-      tip.style.left = Math.min(x-rect.left, window.innerWidth-200)+"px";
-      tip.style.top = (y-rect.top-80)+"px";
-      tip.classList.add("show");
-    }
-
-    // Wire SVG track areas
-    const tracks = {
-      "track-a":"asad", "track-f":"filza", "track-b":"both",
-      "dot-a":"asad",   "dot-f":"filza",   "dot-b":"both",
-      "fill-a":"asad",  "fill-f":"filza",  "fill-b":"both",
-    };
-    Object.entries(tracks).forEach(([id,who])=>{
-      const el=document.getElementById(id);
-      if(!el) return;
-      el.style.cursor="pointer";
-      el.addEventListener("mouseenter",e=>showTip(who,e.clientX,e.clientY));
-      el.addEventListener("mousemove",e=>showTip(who,e.clientX,e.clientY));
-      el.addEventListener("mouseleave",()=>tip.classList.remove("show"));
-      el.addEventListener("touchstart",e=>{ e.preventDefault(); const t=e.touches[0]; showTip(who,t.clientX,t.clientY); },{passive:false});
-    });
-
-    // Also wire stat cards
-    const statMap={
-      "pa-sp":"asad","pa-bu":"asad","pa-rem":"asad","pa-sv":"asad",
-      "pf-sp":"filza","pf-bu":"filza","pf-rem":"filza","pf-sv":"filza",
-      "pb-sp":"both","pb-bu":"both","pb-rem":"both","pb-sv":"both",
-    };
-    Object.entries(statMap).forEach(([id,who])=>{
-      const el=document.getElementById(id);
-      if(!el) return;
-      el.parentElement.addEventListener("mouseenter",e=>showTip(who,e.clientX,e.clientY));
-      el.parentElement.addEventListener("mouseleave",()=>tip.classList.remove("show"));
-    });
-  }
-  // Run after data loads
-  const origUpdate = window.updateProgressBars;
-  if(origUpdate) window._raceTipSetup=true;
-  document.addEventListener("DOMContentLoaded",()=>setTimeout(setupRaceTooltip,1000));
-  window.setupRaceTooltip = setupRaceTooltip;
-})();
 window.openEditModal = openEditModal;
 /* -- PROGRESS GRAPH -- */
 function updateProgressBars(){
@@ -2702,9 +2621,9 @@ function updateProgressBars(){
     function step(now){
       const p=Math.min((now-t0)/dur,1);
       const ease=1-Math.pow(1-p,3);
-      el.setAttribute("width", Math.max(0, start+(target-start)*ease));
+      el.setAttribute("width", start+(target-start)*ease);
       if(p<1) requestAnimationFrame(step);
-      else el.setAttribute("width", Math.max(0, target));
+      else el.setAttribute("width",target);
     }
     requestAnimationFrame(step);
   }
@@ -2734,19 +2653,15 @@ function updateProgressBars(){
 
   // Stat cards
   const g=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
-  const aRem2=aBu-aSp, fRem2=fBu-fSp, cRem2=cBu-cSp;
   g("pa-sp", sh(aSp)+" spent");
-  g("pa-bu", sh(aBu)+" budget");
-  g("pa-rem", (aRem2<0?"-":"")+sh(Math.abs(aRem2))+(aRem2<0?" over":" left"));
-  g("pa-sv", (aSv<0?"-":"+")+sh(Math.abs(aSv))+" net");
+  g("pa-bu", "of "+sh(aBu)+" budget");
+  g("pa-sv", (aSv<0?"−":"+") + sh(Math.abs(aSv))+" saved");
   g("pf-sp", sh(fSp)+" spent");
-  g("pf-bu", sh(fBu)+" budget");
-  g("pf-rem", (fRem2<0?"-":"")+sh(Math.abs(fRem2))+(fRem2<0?" over":" left"));
-  g("pf-sv", (fSv<0?"-":"+")+sh(Math.abs(fSv))+" net");
+  g("pf-bu", "of "+sh(fBu)+" budget");
+  g("pf-sv", (fSv<0?"−":"+") + sh(Math.abs(fSv))+" saved");
   g("pb-sp", sh(cSp)+" spent");
-  g("pb-bu", sh(cBu)+" budget");
-  g("pb-rem", (cRem2<0?"-":"")+sh(Math.abs(cRem2))+(cRem2<0?" over":" left"));
-  g("pb-sv", (cSv<0?"-":"+")+sh(Math.abs(cSv))+" net");
+  g("pb-bu", "of "+sh(cBu)+" budget");
+  g("pb-sv", (cSv<0?"−":"+") + sh(Math.abs(cSv))+" saved");
 }
 
 /* ── SECURED TAB ── */
@@ -3515,7 +3430,6 @@ function renderAnalytics(container){
 function renderAll() {
   if(!currentUser) return;
   updateProgressBars();
-  if(window.setupRaceTooltip) setTimeout(setupRaceTooltip, 100);
   document.getElementById("mlabel").textContent=MONTHS[cm]+" "+cy;
   if(currentView==="combined")  renderCombined(document.getElementById("view-combined"));
   else if(currentView==="asad")  renderAsad(document.getElementById("view-asad"));
