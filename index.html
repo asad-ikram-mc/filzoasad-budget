@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0A1A10"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/><!-- v6.8 -->
+<meta http-equiv="Expires" content="0"/><!-- v6.9 -->
 <!-- v3.1 -->
 <title>Asad &amp; Filza</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -3491,7 +3491,7 @@ function renderAnalytics(container){
 function renderAll() {
   if(!currentUser) return;
   updateProgressBars();
-  setTimeout(initRaceTooltip,200);
+  setTimeout(function(){if(typeof initRaceTooltip==="function") initRaceTooltip();},300);
   document.getElementById("mlabel").textContent=MONTHS[cm]+" "+cy;
   if(currentView==="combined")  renderCombined(document.getElementById("view-combined"));
   else if(currentView==="asad")  renderAsad(document.getElementById("view-asad"));
