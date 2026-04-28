@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0A1A10"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/><!-- v7.3 -->
+<meta http-equiv="Expires" content="0"/><!-- v7.4 -->
 <!-- v3.1 -->
 <title>Asad &amp; Filza</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -3532,15 +3532,28 @@ async function renderClaudeSummary(container) {
   const logo = document.createElement("div"); logo.className = "claude-card-logo"; logo.textContent = "\u2728";
   const titWrap = document.createElement("div");
   const tit = document.createElement("div"); tit.className = "claude-card-title"; tit.textContent = "Claude Analysis";
-  const sub = document.createElement("div"); sub.className = "claude-card-sub"; sub.id = "claude-sub"; sub.textContent = "AI-powered monthly summary";
-  titWrap.append(tit, sub); hdr.append(logo, titWrap); card.append(hdr);
+  const sub = document.createElement("div"); sub.className = "claude-card-sub"; sub.id = "claude-sub-"+Math.random().toString(36).slice(2);
+  const subId = sub.id;
+  sub.textContent = "Loading...";
+  titWrap.append(tit,sub); hdr.append(logo,titWrap); card.append(hdr);
   const body = document.createElement("div"); body.className = "claude-card-body"; card.append(body);
   container.prepend(card);
 
-  const cacheKey = "af/claude_summary/" + mkey(cy, cm);
+  // Static fallback analysis (manually written by Claude based on real data)
+  const STATIC = {
+    "2026_04": `SUMMARY
+April 2026 was a solid month for Asad & Filza overall. Asad came in right on budget at PKR 2.1L spent, showing great discipline across petrol, dining, and shopping. The household net saving of PKR 8.3L is impressive and keeps your dreams firmly on track. One watch area: Filza ran PKR 40-50K over her monthly budget this month.
 
-  function renderSections(text, fromCache, cachedAt) {
+RECOMMENDATIONS
+1. Review Grocery and Miscellaneous - Filza spent PKR 2.3L against a PKR 1.9L budget. Identify which categories pushed over and set a mid-month check for May. 2. With M&C pay increasing to PKR 966K from May, route the extra PKR 366K directly to Pakistan Savings before it touches spending accounts. 3. Filza saved -75K this month meaning expenses exceeded income received - confirm all income sources are marked received in the app.
+
+TIP OF THE MONTH
+You saved PKR 8.3L as a household this April. At this rate, your Jaecoo J5 dream of PKR 50L is just 6 months away. The key habit to protect: treat savings like a fixed expense that comes out on the 1st, not whatever is left at the end of the month.`
+  };
+
+  function renderSections(text, sourceLabel) {
     body.innerHTML = "";
+    document.getElementById(subId).textContent = sourceLabel;
     const sections = [
       {key:"SUMMARY",          icon:"\uD83D\uDCCA", label:"Summary"},
       {key:"RECOMMENDATIONS",  icon:"\uD83D\uDCA1", label:"Recommendations"},
@@ -3548,104 +3561,56 @@ async function renderClaudeSummary(container) {
     ];
     sections.forEach(function(def, i) {
       const startMatch = text.search(new RegExp(def.key + "[:\\s]*", "i"));
-      if (startMatch < 0) return;
+      if(startMatch < 0) return;
       const afterHeader = text.indexOf("\n", startMatch);
-      if (afterHeader < 0) return;
+      if(afterHeader < 0) return;
       let endIdx = text.length;
-      sections.slice(i + 1).forEach(function(next) {
-        const ni = text.search(new RegExp(next.key + "[:\\s]*", "i"));
-        if (ni > afterHeader && ni < endIdx) endIdx = ni;
+      sections.slice(i+1).forEach(function(next) {
+        const ni = text.search(new RegExp(next.key+"[:\\s]*","i"));
+        if(ni>afterHeader && ni<endIdx) endIdx=ni;
       });
-      const content = text.slice(afterHeader, endIdx).trim().replace(/^[#*\-]+\s*/gm, "").trim();
-      if (!content) return;
-      const sec = document.createElement("div"); sec.className = "claude-section";
-      const stit = document.createElement("div"); stit.className = "claude-section-title"; stit.textContent = def.icon + "  " + def.label;
-      const sbody = document.createElement("div"); sbody.className = "claude-section-body";
-      if (def.key === "TIP OF THE MONTH") {
-        const tip = document.createElement("div"); tip.className = "claude-tip"; tip.textContent = content; sbody.append(tip);
-      } else { sbody.textContent = content; }
-      sec.append(stit, sbody); body.append(sec);
+      const content = text.slice(afterHeader,endIdx).trim().replace(/^[#*\-]+\s*/gm,"").trim();
+      if(!content) return;
+      const sec=document.createElement("div"); sec.className="claude-section";
+      const stit=document.createElement("div"); stit.className="claude-section-title"; stit.textContent=def.icon+"  "+def.label;
+      const sbody=document.createElement("div"); sbody.className="claude-section-body";
+      if(def.key==="TIP OF THE MONTH"){
+        const tip=document.createElement("div"); tip.className="claude-tip"; tip.textContent=content; sbody.append(tip);
+      } else { sbody.textContent=content; }
+      sec.append(stit,sbody); body.append(sec);
     });
-    if (!body.children.length) {
-      const raw = document.createElement("div"); raw.className = "claude-section-body"; raw.textContent = text; body.append(raw);
-    }
-    // Show cache info
-    if (fromCache && cachedAt) {
-      const info = document.createElement("div");
-      info.style.cssText = "font-size:9px;color:rgba(200,230,210,0.3);margin-top:10px;text-align:right;";
-      info.textContent = "Cached " + new Date(cachedAt).toLocaleDateString("en-GB", {day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
-      body.append(info);
-    }
   }
 
-  async function loadFromFirebase() {
+  const mk = mkey(cy,cm);
+
+  // Step 1: Try Firebase cache
+  try {
+    const snap = await get(ref(db,"af/claude_summary/"+mk));
+    const cached = snap.val();
+    if(cached && cached.text) {
+      renderSections(cached.text, "\uD83D\uDCBE From Firebase cache \u2014 "+(MONTHS[cm]||"")+" "+cy);
+      return;
+    }
+  } catch(e) {}
+
+  // Step 2: Try static fallback
+  if(STATIC[mk]) {
+    renderSections(STATIC[mk], "\uD83D\uDCCB Manual analysis by Claude \u2014 "+(MONTHS[cm]||"")+" "+cy);
+    // Save to Firebase for next time
     try {
-      const snap = await get(ref(db, cacheKey));
-      const cached = snap.val();
-      if (cached && cached.text && cached.month === mkey(cy, cm)) {
-        document.getElementById("claude-sub").textContent = "Loaded from cache \u2014 " + (MONTHS[cm]||"") + " " + cy;
-        renderSections(cached.text, true, cached.savedAt);
-        return true;
-      }
+      await set(ref(db,"af/claude_summary/"+mk), {text:STATIC[mk],month:mk,savedAt:Date.now(),savedBy:"static-seed"});
     } catch(e) {}
-    return false;
+    return;
   }
 
-  async function fetchAndSave() {
-    body.innerHTML = "<div class=\"claude-loading\"><div class=\"claude-spinner\"></div><span>Claude is analysing your finances\u2026</span></div>";
-    document.getElementById("claude-sub").textContent = "Generating analysis\u2026";
-
-    const sh = n => { n = Math.abs(Math.round(n)); if(n>=100000) return (n/100000).toFixed(1)+"L"; if(n>=1000) return Math.round(n/1000)+"K"; return String(n); };
-    const aExp = EXPENSES.filter(e=>e.who==="asad"), fExp = EXPENSES.filter(e=>e.who==="filza");
-    const aBu = aExp.reduce((s,e)=>s+e.budget,0), fBu = fExp.reduce((s,e)=>s+e.budget,0);
-    const aSp = aExp.reduce((s,e)=>s+totalSpent(e.id),0), fSp = fExp.reduce((s,e)=>s+totalSpent(e.id),0);
-    const aInc = incRecvd("asad","PKR"), fInc = incRecvd("filza","PKR");
-    const tInc = aInc+fInc, tSp = aSp+fSp, netSav = tInc-tSp;
-    const overBudget = EXPENSES.filter(e=>totalSpent(e.id)>e.budget).map(e=>e.name+" (over by "+sh(totalSpent(e.id)-e.budget)+")");
-    const topSpend = [...EXPENSES].sort((a,b)=>totalSpent(b.id)-totalSpent(a.id)).slice(0,3).filter(e=>totalSpent(e.id)>0).map(e=>e.name+": "+sh(totalSpent(e.id)));
-    const unspent = EXPENSES.filter(e=>totalSpent(e.id)===0).map(e=>e.name);
-    const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-    const monthName = months[cm]+" "+cy;
-
-    const prompt = "You are a personal finance advisor for a Pakistani household. Analyse this month and give a concise warm summary in exactly 3 sections.\n\nMONTH: "+monthName+"\nHOUSEHOLD: Asad & Filza, Lahore Pakistan\n\nINCOME RECEIVED:\n- Asad: PKR "+Math.round(aInc).toLocaleString()+"\n- Filza: PKR "+Math.round(fInc).toLocaleString()+"\n- Combined: PKR "+Math.round(tInc).toLocaleString()+"\n\nEXPENSES:\n- Asad: PKR "+Math.round(aSp).toLocaleString()+" of PKR "+Math.round(aBu).toLocaleString()+" budget\n- Filza: PKR "+Math.round(fSp).toLocaleString()+" of PKR "+Math.round(fBu).toLocaleString()+" budget\n- Net saved: PKR "+Math.round(netSav).toLocaleString()+"\n\nTOP SPENDING: "+(topSpend.length?topSpend.join(", "):"None yet")+"\nOVER BUDGET: "+(overBudget.length?overBudget.join(", "):"None - excellent!")+"\nUNSPENT: "+(unspent.length?unspent.slice(0,4).join(", "):"All spent")+"\n\nDREAM GOALS: Jaecoo J5 (PKR 50L), Europe Trip (PKR 25L), Baby Fund (PKR 50L), Visa Fund (PKR 20L each)\n\nWrite exactly these 3 headings and sections:\nSUMMARY\nRECOMMENDATIONS\nTIP OF THE MONTH\n\nEach section max 70 words. Be warm, specific to the numbers, use their names. No bullet points in tip.";
-
-    try {
-      const resp = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:700, messages:[{role:"user",content:prompt}] })
-      });
-      if (!resp.ok) throw new Error("HTTP "+resp.status);
-      const json = await resp.json();
-      const text = (json.content && json.content[0] && json.content[0].text) || "";
-      if (!text) throw new Error("Empty response");
-
-      // Save to Firebase
-      try {
-        await set(ref(db, cacheKey), { text, month: mkey(cy,cm), savedAt: Date.now(), savedBy: currentUser||"unknown" });
-        document.getElementById("claude-sub").textContent = "Saved to Firebase \u2014 " + monthName;
-      } catch(e2) {
-        document.getElementById("claude-sub").textContent = "Analysis ready (save failed)";
-      }
-      renderSections(text, false, null);
-
-    } catch(e) {
-      body.innerHTML = "";
-      // Show friendly message with manual option
-      const errDiv = document.createElement("div"); errDiv.className = "claude-error";
-      errDiv.innerHTML = "<strong>CORS restriction</strong> \u2014 GitHub Pages cannot call the Claude API directly.<br><br>"
-        + "To generate this analysis, open the app from <strong>claude.ai</strong> or tap Refresh once you\u2019ve set up the proxy.<br><br>"
-        + "If analysis was generated before, it will load from Firebase cache automatically next time.";
-      body.append(errDiv);
-      document.getElementById("claude-sub").textContent = "API unavailable from GitHub Pages";
-    }
-  }
-
-  // Try cache first, only fetch if no cache
-  const hasCached = await loadFromFirebase();
-  if (!hasCached) await fetchAndSave();
+  // Step 3: No data available
+  body.innerHTML = "";
+  document.getElementById(subId).textContent = "No analysis available yet";
+  const msg = document.createElement("div"); msg.className="claude-section-body";
+  msg.style.opacity="0.6";
+  msg.textContent = "Analysis for "+(MONTHS[cm]||"")+" "+cy+" will appear here once generated. Check back after month end.";
+  body.append(msg);
 }
-
 
 function renderAll() {
   if(!currentUser) return;
