@@ -3815,7 +3815,23 @@ Savings sense-check for April: Household overspent total budget by PKR 30,000. T
       if (def.key === "TIP OF THE MONTH") {
         const tip = document.createElement("div"); tip.className = "claude-tip"; tip.textContent = content; sbody.append(tip);
       } else if (def.isAction) {
-        const ab=document.createElement("div"); ab.style.cssText="background:rgba(168,100,30,0.12);border:1px solid rgba(200,140,60,0.3);border-radius:10px;padding:10px 12px;font-size:12px;color:rgba(240,200,140,0.85);line-height:1.65;"; ab.textContent=content; sbody.append(ab);
+        // Split numbered actions into individual cards
+        var actionLines = content.split(/(?=\d+\.\s)/).filter(function(s){return s.trim();});
+        if(actionLines.length <= 1) actionLines = content.split(/\n/).filter(function(s){return s.trim();});
+        actionLines.forEach(function(line) {
+          var txt = line.trim();
+          if(!txt) return;
+          var ac = document.createElement("div");
+          ac.style.cssText = "display:flex;align-items:flex-start;gap:10px;background:rgba(168,100,30,0.1);border:1px solid rgba(200,140,60,0.25);border-radius:12px;padding:10px 12px;margin-bottom:7px;";
+          var numMatch = txt.match(/^(\d+)\.(\s*)/);
+          var ico = document.createElement("div");
+          ico.style.cssText = "width:22px;height:22px;border-radius:6px;background:rgba(200,140,60,0.25);color:rgba(240,200,140,0.9);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;";
+          ico.textContent = numMatch ? numMatch[1] : "\u26A1";
+          var content2 = document.createElement("div");
+          content2.style.cssText = "font-size:12px;color:rgba(240,200,140,0.85);line-height:1.6;";
+          content2.textContent = numMatch ? txt.slice(numMatch[0].length) : txt;
+          ac.append(ico, content2); sbody.append(ac);
+        });
       } else { sbody.textContent = content; }
       sec.append(stit, sbody); body.append(sec);
     });
