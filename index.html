@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="A&amp;F Finance"/>
-<!-- v8.9b --><meta name="theme-color" content="#0A1A10"/>
+<!-- v8.9c --><meta name="theme-color" content="#0A1A10"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/><!-- v8.3-202604290957 -->
@@ -204,6 +204,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
   .prog-graph-wrap{max-width:900px;margin:0 auto;}
   .view.on,.split-view.on,#split-sum-row{max-width:900px;margin:0 auto;}
   .ms-fab{right:calc((100vw - 900px)/2 + 1.1rem);}
+  /* Desktop tabs - centered, no scroll needed, equal spacing */
+  .tabs{max-width:900px;margin:0 auto;overflow-x:visible;justify-content:center;}
+  .tab{flex:1;padding:9px 8px 8px;font-size:11px;}
+  .tab:first-child{border-radius:0;}
 }
 
 /* Canvas chart */
