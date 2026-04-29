@@ -160,7 +160,7 @@ RECOMMENDATIONS
 (5 numbered actions for next month. Each must cite specific PKR amounts.)
 
 ACTIONS
-(Savings sense-check: Calculate if household overspent vs budget. If yes specify exact PKR amount to withdraw from Pakistan Savings to cover shortfall. Check each bank account separately. Give numbered action items with exact PKR amounts. State clearly if no action needed.)
+(Write ONLY as a numbered list. Each line must start with a number and period e.g. "1. Do this". No intro sentences, no sub-headings, no markdown bold. Cover: 1) Did household overspend vs total budget - if yes exact PKR to withdraw from Pakistan Savings. 2) Any bank account needing funds moved. 3) Any budget reallocation for next month. 4) Any accounts that need no action. Max 6 numbered lines. Each line one clear action with exact PKR amount.)
 
 TIP OF THE MONTH
 (3-4 sentences connecting habits to their dream goals. Make it personal and motivating.)"""
