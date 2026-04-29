@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0A1A10"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/><!-- v7.8 -->
+<meta http-equiv="Expires" content="0"/><!-- v8.0 -->
 <!-- v3.1 -->
 <title>Asad &amp; Filza</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -1275,14 +1275,27 @@ function makeIncItem(src) {
     });
     toast((!rcvd)?"Marked received \u2713":"Marked pending");
   };
+  const inpWrap2=document.createElement("div"); inpWrap2.style.cssText="display:flex;gap:6px;flex:1;";
   const inp=document.createElement("input"); inp.className="inc-input"+(rcvd?" rcvd":"");
   inp.type="number"; inp.placeholder="Actual "+(src.cur==="GBP"?"GBP":"PKR");
-  inp.value=d.actual||"";
-  inp.onchange=async()=>{
-    await update(ref(db,dbp("income",src.id)),{actual:parseFloat(inp.value)||0});
-    toast("Amount saved");
+  inp.value=d.actual||""; inp.style.flex="1";
+  const submitActual=document.createElement("button");
+  submitActual.textContent="\u2713 Save";
+  submitActual.style.cssText="padding:0 12px;height:36px;border-radius:10px;border:none;background:var(--grn);color:#EDF8EF;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0;display:"+(inp.value?"flex":"none")+";align-items:center;";
+  submitActual.onclick=async()=>{
+    const val=parseFloat(inp.value)||0;
+    if(!val){ toast("Enter the actual amount first","warn"); return; }
+    submitActual.textContent="\u23F3"; submitActual.disabled=true;
+    await update(ref(db,dbp("income",src.id)),{actual:val,received:true});
+    submitActual.textContent="\u2713 Saved!"; submitActual.disabled=false;
+    setTimeout(()=>{ submitActual.textContent="\u2713 Save"; },2000);
+    toast("Actual saved: "+(src.cur==="GBP"?"\u00A3":"PKR ")+val.toLocaleString(),"ok");
+    logActivity("inc","Actual pay saved: "+src.name,"",val,currentUser);
   };
-  ctrl.append(pill,inp);
+  inp.addEventListener("input",()=>{ submitActual.style.display=inp.value?"flex":"none"; });
+  inp.addEventListener("keydown",function(e){ if(e.key==="Enter") submitActual.click(); });
+  inpWrap2.append(inp,submitActual);
+  ctrl.append(pill,inpWrap2);
   wrap.append(top,nt,ctrl);
   return wrap;
 }
@@ -3562,6 +3575,92 @@ function renderAnalytics(container){
   insights.forEach(ins=>{const ic=document.createElement("div");ic.className="insight-card"+(ins.warn?" warn":"");const ico=document.createElement("div");ico.className="insight-ico";ico.textContent=ins.ico;const txt=document.createElement("div");txt.className="insight-txt";txt.innerHTML=ins.msg;ic.append(ico,txt);insCard.append(ic);});
   container.append(insCard);
 }
+  // ── E. Savings Health Graph ──
+  const savCard2=document.createElement("div"); savCard2.className="chart-card";
+  const savTitle2=document.createElement("div"); savTitle2.className="chart-title"; savTitle2.textContent="Savings Health";
+  const savSub2=document.createElement("div"); savSub2.className="chart-sub"; savSub2.textContent="Budget vs Spent vs Saved this month";
+  const savWrap2=document.createElement("div"); savWrap2.className="chart-wrap"; savWrap2.style.height="180px";
+  const savCanvas2=document.createElement("canvas"); savCanvas2.id="chart-sav";
+  savWrap2.append(savCanvas2); savCard2.append(savTitle2,savSub2,savWrap2); container.append(savCard2);
+
+  const totalBudgetAll=EXPENSES.reduce((s,e)=>s+e.budget,0);
+  const totalSpentAll2=EXPENSES.reduce((s,e)=>s+totalSpent(e.id),0);
+  const totalIncomeAll=incRecvd("asad","PKR")+incRecvd("filza","PKR");
+  const savedThisMonth2=Math.max(0,totalIncomeAll-totalSpentAll2);
+  const overSpent2=Math.max(0,totalSpentAll2-totalBudgetAll);
+
+  analyticsCharts["sav"]=new Chart(savCanvas2,{
+    type:"bar",
+    data:{
+      labels:["This Month"],
+      datasets:[
+        {label:"Budget",     data:[totalBudgetAll],  backgroundColor:"rgba(138,104,24,0.4)",borderRadius:6},
+        {label:"Spent",      data:[totalSpentAll2],  backgroundColor:totalSpentAll2>totalBudgetAll?"rgba(168,56,88,0.8)":"rgba(42,84,56,0.8)",borderRadius:6},
+        {label:"Saved",      data:[savedThisMonth2], backgroundColor:"rgba(80,180,120,0.8)",borderRadius:6},
+        {label:"Over Budget",data:[overSpent2],      backgroundColor:"rgba(200,60,60,0.7)",borderRadius:6}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:"bottom",labels:{font:{size:10},padding:8,boxWidth:10}},
+        tooltip:{callbacks:{label:function(ctx){return ctx.dataset.label+": "+fmt2(ctx.raw);}}}},
+      scales:{y:{ticks:{callback:function(v){return sh(v);}},grid:{color:"rgba(0,0,0,.05)"}}}
+    }
+  });
+
+  // ── F. Saved This Month vs Total Savings Doughnut ──
+  get(ref(db,"af/savings")).then(function(snap){
+    const savData3=snap.val()||{};
+    const pakSav=(savData3.pak_sav&&savData3.pak_sav.amount)||0;
+    const lloydsGBP=(savData3.lloyds&&savData3.lloyds.amount)||0;
+    const lloydsEst=lloydsGBP*280; // approx PKR equivalent
+
+    const totCard2=document.createElement("div"); totCard2.className="chart-card";
+    const totTitle2=document.createElement("div"); totTitle2.className="chart-title"; totTitle2.textContent="Saved This Month vs Total Wealth";
+    const totSub2=document.createElement("div"); totSub2.className="chart-sub"; totSub2.textContent="How this month's saving fits into your total accumulated wealth";
+    const totWrap2=document.createElement("div"); totWrap2.className="chart-wrap"; totWrap2.style.height="220px";
+    const totCanvas2=document.createElement("canvas"); totCanvas2.id="chart-tot";
+    totWrap2.append(totCanvas2); totCard2.append(totTitle2,totSub2,totWrap2);
+
+    // Stat chips
+    const chips2=document.createElement("div");
+    chips2.style.cssText="display:flex;gap:8px;flex-wrap:wrap;padding:10px 0 4px;";
+    [
+      {label:"Saved This Month", val:"PKR "+Math.round(savedThisMonth2).toLocaleString()},
+      {label:"Pakistan Savings", val:"PKR "+Math.round(pakSav).toLocaleString()},
+      {label:"UK Lloyds",        val:"\u00A3"+Math.round(lloydsGBP).toLocaleString()},
+      {label:"Total (PKR est.)",  val:"PKR "+Math.round(pakSav+lloydsEst+savedThisMonth2).toLocaleString()},
+    ].forEach(function(item){
+      const chip=document.createElement("div");
+      chip.style.cssText="flex:1;min-width:80px;text-align:center;padding:8px 6px;border-radius:10px;background:var(--panel);";
+      chip.innerHTML="<div style='font-size:9px;color:var(--sf);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px'>"+item.label+"</div>"
+        +"<div style='font-family:Cormorant Garamond,serif;font-size:14px;font-weight:600;color:var(--dk)'>"+item.val+"</div>";
+      chips2.append(chip);
+    });
+    totCard2.append(chips2);
+    container.append(totCard2);
+
+    analyticsCharts["tot"]=new Chart(totCanvas2,{
+      type:"doughnut",
+      data:{
+        labels:["Saved This Month","Pakistan Savings","UK Lloyds (PKR est.)"],
+        datasets:[{
+          data:[savedThisMonth2, pakSav, lloydsEst],
+          backgroundColor:["rgba(80,180,120,0.85)","rgba(42,84,56,0.85)","rgba(70,120,180,0.85)"],
+          borderWidth:2, borderColor:"#FDFFFE"
+        }]
+      },
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{
+          legend:{position:"bottom",labels:{font:{size:10},padding:8,boxWidth:10}},
+          tooltip:{callbacks:{label:function(ctx){
+            var total=ctx.dataset.data.reduce(function(a,b){return a+b;},0)||1;
+            return ctx.label+": "+fmt2(ctx.raw)+" ("+Math.round(ctx.raw/total*100)+"%)";
+          }}}
+        }
+      }
+    });
+  }).catch(function(){});
+
 
 /* ══ CLAUDE AI SUMMARY ══ */
 /* ══ CLAUDE AI SUMMARY ══ */
@@ -3621,7 +3720,10 @@ RECOMMENDATIONS
 1. Grocery is the number one priority - set a PKR 70K hard cap for May and track spend after each shop on WhatsApp. 2. From May Asad M+C rises to PKR 966K - on salary day move PKR 300K to Pakistan Savings before it touches spending accounts. 3. Shopping on ABL came in high - split clothing and lifestyle into a separate PKR 30K monthly budget tracked apart from daily shopping. 4. Filza net income shows negative because not all income was marked received - confirm salary marked on payment day for accurate picture. 5. At PKR 8.3L monthly household saving you are 6 months from Jaecoo J5 - open a dedicated savings pot labeled Car Fund to protect this goal.
 
 TIP OF THE MONTH
-You saved PKR 8.3L as a household this April. At this rate your Jaecoo J5 dream of PKR 50L is just 6 months away. The key habit to protect: treat savings like a fixed expense that comes out on the 1st not whatever is left at the end of the month. One tighter grocery month could push you to PKR 9L saved and shave a full month off your car timeline.`
+You saved PKR 8.3L as a household this April. At this rate your Jaecoo J5 dream of PKR 50L is just 6 months away. The key habit to protect: treat savings like a fixed expense that comes out on the 1st not whatever is left at the end of the month. One tighter grocery month could push you to PKR 9L saved and shave a full month off your car timeline.
+
+ACTIONS
+Savings sense-check for April: Household overspent total budget by PKR 30,000. The main culprit is Filza SCB Grocery at PKR 115K vs PKR 76K budget - a PKR 39K overshoot. If you had already moved PKR 8.3L to Pakistan Savings this month, withdraw PKR 40,000 back to Filza SCB to cover the grocery shortfall and restore account balance. Asad HBL ran PKR 10K over on combined Daily and Ammi - absorb from next month, no savings withdrawal needed. Asad ABL over by PKR 4K on petrol and shopping combined - too small to action. Net: transfer PKR 40,000 from Pakistan Savings to Filza SCB if needed. Lloyds UK untouched at GBP 2,900 - no action. Review Pakistan Savings balance and confirm it reflects: opening balance plus monthly deposit minus PKR 40K correction.`
   };
 
   function renderSections(text, sourceLabel, savedAt) {
@@ -3643,6 +3745,7 @@ You saved PKR 8.3L as a household this April. At this rate your Jaecoo J5 dream 
       {key:"SUMMARY",            icon:"\uD83D\uDCCA", label:"Summary"},
       {key:"CATEGORY DEEP DIVE", icon:"\uD83D\uDD0D", label:"Category Deep Dive"},
       {key:"RECOMMENDATIONS",    icon:"\uD83D\uDCA1", label:"Recommendations"},
+      {key:"ACTIONS",            icon:"\u26A1",        label:"Actions Required", isAction:true},
       {key:"TIP OF THE MONTH",   icon:"\u2728",        label:"Tip of the Month"},
     ];
     sections.forEach(function(def, i) {
@@ -3663,6 +3766,8 @@ You saved PKR 8.3L as a household this April. At this rate your Jaecoo J5 dream 
       const sbody = document.createElement("div"); sbody.className = "claude-section-body";
       if (def.key === "TIP OF THE MONTH") {
         const tip = document.createElement("div"); tip.className = "claude-tip"; tip.textContent = content; sbody.append(tip);
+      } else if (def.isAction) {
+        const ab=document.createElement("div"); ab.style.cssText="background:rgba(168,100,30,0.12);border:1px solid rgba(200,140,60,0.3);border-radius:10px;padding:10px 12px;font-size:12px;color:rgba(240,200,140,0.85);line-height:1.65;"; ab.textContent=content; sbody.append(ab);
       } else { sbody.textContent = content; }
       sec.append(stit, sbody); body.append(sec);
     });

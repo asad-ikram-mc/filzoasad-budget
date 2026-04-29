@@ -159,6 +159,9 @@ CATEGORY DEEP DIVE
 RECOMMENDATIONS
 (5 numbered actions for next month. Each must cite specific PKR amounts.)
 
+ACTIONS
+(Savings sense-check: Calculate if household overspent vs budget. If yes specify exact PKR amount to withdraw from Pakistan Savings to cover shortfall. Check each bank account separately. Give numbered action items with exact PKR amounts. State clearly if no action needed.)
+
 TIP OF THE MONTH
 (3-4 sentences connecting habits to their dream goals. Make it personal and motivating.)"""
 
