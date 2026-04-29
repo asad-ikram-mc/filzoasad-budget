@@ -1188,6 +1188,8 @@ function subscribe() {
     state = snap.val()||{};
     if(currentUser) renderAll();
   });
+  // Seed April analysis once after first data load
+  if(typeof seedAprilAnalysis === "function" && !window._seeded) { window._seeded=true; setTimeout(seedAprilAnalysis, 3000); }
 }
 
 onValue(ref(db,".info/connected"), snap => {
@@ -2481,7 +2483,6 @@ async function doLogin(){
   saveSession(loginWho);
   document.getElementById("login-pass").value="";
   document.getElementById("login-page").classList.add("hidden");
-  setTimeout(seedAprilAnalysis, 2000);
   document.getElementById("logged-in-as").textContent =
     "Logged in as " + loginWho.charAt(0).toUpperCase() + loginWho.slice(1);
   btn.disabled=false; btn.textContent="Sign in"; btn.style.opacity="";
