@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0A1A10"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/><!-- v7.4 -->
+<meta http-equiv="Expires" content="0"/><!-- v7.6 -->
 <!-- v3.1 -->
 <title>Asad &amp; Filza</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -3444,7 +3444,40 @@ function renderAnalytics(container){
   expWrap.append(expCanvas); expCard.append(expTitle,expSub,expWrap); container.append(expCard);
   const catSpent=EXPENSES.map(e=>totalSpent(e.id));
   const catColors=EXPENSES.map((e,i)=>{const p=e.budget>0?catSpent[i]/e.budget:0;return p>=1?"rgba(168,56,88,0.85)":p>=0.75?"rgba(184,133,10,0.85)":"rgba(42,84,56,0.85)";});
-  analyticsCharts["exp"]=new Chart(expCanvas,{type:"bar",data:{labels:EXPENSES.map(e=>e.icon+" "+e.name),datasets:[{label:"Spent",data:catSpent,backgroundColor:catColors,borderRadius:4},{label:"Budget",data:EXPENSES.map(e=>e.budget),backgroundColor:"rgba(200,218,200,0.25)",borderRadius:4}]},options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>fmt2(ctx.raw)}}},scales:{x:{ticks:{callback:v=>sh(v)},grid:{color:"rgba(0,0,0,.05)"}},y:{ticks:{font:{size:10}}}}}});
+  analyticsCharts["exp"]=new Chart(expCanvas,{
+  type:"bar",
+  data:{
+    labels:EXPENSES.map(e=>e.icon+" "+e.name),
+    datasets:[
+      {label:"Spent",data:catSpent,backgroundColor:catColors,borderRadius:4,order:2},
+      {label:"Budget",data:EXPENSES.map(e=>e.budget),
+       type:"scatter",order:1,
+       pointStyle:"line",pointRadius:8,pointBorderWidth:2.5,
+       pointBorderColor:"rgba(200,168,60,0.9)",
+       pointBackgroundColor:"rgba(200,168,60,0.9)",
+       backgroundColor:"transparent",showLine:false
+      }
+    ]
+  },
+  options:{
+    indexAxis:"y",responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{display:true,position:"bottom",labels:{font:{size:10},padding:10,boxWidth:12,
+        generateLabels:function(chart){
+          return [
+            {text:"Spent",fillStyle:"rgba(42,84,56,0.8)",strokeStyle:"transparent",lineWidth:0},
+            {text:"Budget limit",fillStyle:"rgba(200,168,60,0.9)",strokeStyle:"transparent",lineWidth:0}
+          ];
+        }
+      }},
+      tooltip:{callbacks:{label:ctx=>ctx.dataset.label+": "+fmt2(ctx.raw)}}
+    },
+    scales:{
+      x:{ticks:{callback:v=>sh(v)},grid:{color:"rgba(0,0,0,.05)"}},
+      y:{ticks:{font:{size:10}}}
+    }
+  }
+});
 
   // B. Bank breakdown
   const bankCard=document.createElement("div"); bankCard.className="chart-card";
@@ -3542,22 +3575,26 @@ async function renderClaudeSummary(container) {
   // Static fallback analysis (manually written by Claude based on real data)
   const STATIC = {
     "2026_04": `SUMMARY
-April 2026 was a solid month for Asad & Filza overall. Asad came in right on budget at PKR 2.1L spent, showing great discipline across petrol, dining, and shopping. The household net saving of PKR 8.3L is impressive and keeps your dreams firmly on track. One watch area: Filza ran PKR 40-50K over her monthly budget this month.
+April 2026 shows a strong but nuanced financial picture for Asad & Filza. Asad spent PKR 2.1L against a PKR 2.1L budget - an impressive 100% utilisation showing disciplined spending. However Filza spent PKR 2.3L against a PKR 1.9L budget, running PKR 40,000 over. Household net income received stands at approximately PKR 11.4L PKR (Asad M&C 6L + Freelance 3.9L + Filza 1.5L), with Fix.com GBP 2,900 sitting separately in Lloyds UK untouched. Net household saving of PKR 8.3L is strong and ahead of the PKR 4L monthly expense baseline. The Grocery category under Filza SCB (PKR 1.15L spent vs PKR 76,100 budget) is the biggest overshoot at 51% over - this single category explains most of Filza's overrun.
+
+CATEGORY DEEP DIVE
+Asad ABL: Petrol PKR 30K (on budget), Shopping PKR 106K (slightly over 40K budget - check receipts), Dining Out pushing toward 40K limit. Asad HBL: Daily Expense, Ammi PKR 50K, Internet PKR 14K, Phone PKR 5K - all within budget. Filza HBL: Mama PKR 50K, Daily, Misc, Phone - running PKR 4K over PKR 105K budget total. Filza SCB: Grocery PKR 115K vs PKR 76K budget is the red flag. Toiletries, Server Sub, Netflix all within budget. UK Account (Lloyds): GBP 2,900 untouched - accumulating well. Consider setting a GBP savings milestone target.
 
 RECOMMENDATIONS
-1. Review Grocery and Miscellaneous - Filza spent PKR 2.3L against a PKR 1.9L budget. Identify which categories pushed over and set a mid-month check for May. 2. With M&C pay increasing to PKR 966K from May, route the extra PKR 366K directly to Pakistan Savings before it touches spending accounts. 3. Filza saved -75K this month meaning expenses exceeded income received - confirm all income sources are marked received in the app.
+1. Grocery control is the #1 priority for May. PKR 115K on groceries for two people in Lahore is high - set a PKR 70K hard cap and use a running WhatsApp total when shopping. 2. From May, Asad's M&C increases to PKR 966K (+PKR 366K). Automate: on salary day, move PKR 300K to Pakistan Savings before anything else - treat it as already spent. 3. Shopping on ABL came in high. Consider a monthly 'clothing/lifestyle' budget of PKR 30K and track separately from daily shopping. 4. Filza's income received (-75K net) suggests not all income was logged as received this month - mark salary as received on payment day to keep the picture accurate. 5. Dreams check: at PKR 8.3L/month savings, Jaecoo J5 (50L) = 6 months, Europe Trip (25L) = 3 months, Baby Fund (50L) = 6 months. Stagger these goals and consider opening a dedicated savings pot for the car.
 
 TIP OF THE MONTH
-You saved PKR 8.3L as a household this April. At this rate, your Jaecoo J5 dream of PKR 50L is just 6 months away. The key habit to protect: treat savings like a fixed expense that comes out on the 1st, not whatever is left at the end of the month.`
+The Grocery category will make or break your May budget. Before each shopping trip, write a list and set a PKR 15,000 per-trip limit. In a month with 4 shops that is PKR 60,000 total - well under budget and with PKR 10,000 spare for unexpected needs. Small habit, massive difference: you saved PKR 8.3L this April and with tighter grocery discipline in May you can hit PKR 9L+ while also enjoying that M&C raise.`
   };
 
   function renderSections(text, sourceLabel) {
     body.innerHTML = "";
     document.getElementById(subId).textContent = sourceLabel;
     const sections = [
-      {key:"SUMMARY",          icon:"\uD83D\uDCCA", label:"Summary"},
-      {key:"RECOMMENDATIONS",  icon:"\uD83D\uDCA1", label:"Recommendations"},
-      {key:"TIP OF THE MONTH", icon:"\u2728",        label:"Tip of the Month"},
+      {key:"SUMMARY",            icon:"\uD83D\uDCCA", label:"Summary"},
+      {key:"CATEGORY DEEP DIVE", icon:"\uD83D\uDD0D", label:"Category Deep Dive"},
+      {key:"RECOMMENDATIONS",    icon:"\uD83D\uDCA1", label:"Recommendations"},
+      {key:"TIP OF THE MONTH",   icon:"\u2728",        label:"Tip of the Month"},
     ];
     sections.forEach(function(def, i) {
       const startMatch = text.search(new RegExp(def.key + "[:\\s]*", "i"));
