@@ -3816,8 +3816,19 @@ Savings sense-check for April: Household overspent total budget by PKR 30,000. T
         const tip = document.createElement("div"); tip.className = "claude-tip"; tip.textContent = content; sbody.append(tip);
       } else if (def.isAction) {
         // Split numbered actions into individual cards
-        var actionLines = content.split(/(?=\d+\.\s)/).filter(function(s){return s.trim();});
-        if(actionLines.length <= 1) actionLines = content.split(/\n/).filter(function(s){return s.trim();});
+        // Clean markdown bold markers
+        var cleaned = content.replace(/\*\*([^*]+)\*\*/g,"$1");
+        // Split on numbered points at start of line only
+        var actionLines = cleaned.split(/\n/).filter(function(s){return s.trim();});
+        // Merge lines that are just a number (e.g. "2" alone) with next line
+        var merged = [];
+        for(var ai=0;ai<actionLines.length;ai++){
+          var cur = actionLines[ai].trim();
+          if(/^\d+\.?$/.test(cur) && ai+1<actionLines.length){
+            merged.push(cur.replace(/\.$/,"") + ". " + actionLines[++ai].trim());
+          } else if(cur) { merged.push(cur); }
+        }
+        actionLines = merged.filter(function(s){return s.trim().length > 3;});
         actionLines.forEach(function(line) {
           var txt = line.trim();
           if(!txt) return;
