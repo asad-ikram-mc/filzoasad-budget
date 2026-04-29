@@ -162,6 +162,13 @@ RECOMMENDATIONS
 TIP OF THE MONTH
 (3-4 sentences connecting habits to their dream goals. Make it personal and motivating.)"""
 
+# Read any extra prompt the user added from the website
+extra_prompt_data = firebase_get(f"af/claude_extra_prompt/{month_key}") or {}
+extra_prompt = extra_prompt_data.get("prompt", "").strip()
+if extra_prompt:
+    prompt += f"\n\nADDITIONAL INSTRUCTIONS FROM USER:\n{extra_prompt}"
+    print(f"Extra prompt added: {extra_prompt[:80]}")
+
 print(f"Calling Claude API... Income={sh(t_inc)}, Spent={sh(t_sp)}, Saved={sh(net)}")
 
 payload = json.dumps({

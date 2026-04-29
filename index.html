@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0A1A10"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/><!-- v7.6 -->
+<meta http-equiv="Expires" content="0"/><!-- v7.8 -->
 <!-- v3.1 -->
 <title>Asad &amp; Filza</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -709,6 +709,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 .claude-tip{background:rgba(200,168,60,0.1);border-left:3px solid rgba(200,168,60,0.45);border-radius:0 8px 8px 0;padding:8px 10px;font-size:12px;color:rgba(230,210,140,0.85);line-height:1.6;}
 .claude-refresh-btn{margin-top:12px;width:100%;height:34px;background:rgba(200,168,60,0.1);border:1px solid rgba(200,168,60,0.25);border-radius:10px;color:rgba(200,168,60,0.7);font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
 .claude-refresh-btn:active{background:rgba(200,168,60,0.2);}
+
+.claude-prompt-wrap{margin-top:10px;}
+.claude-prompt-wrap textarea{width:100%;min-height:55px;padding:8px 10px;border-radius:10px;border:1px solid rgba(200,168,60,0.2);background:rgba(255,255,255,0.04);color:rgba(220,240,225,0.85);font-family:'DM Sans',sans-serif;font-size:11px;line-height:1.5;resize:vertical;box-sizing:border-box;}
+.claude-prompt-wrap textarea:focus{outline:none;border-color:rgba(200,168,60,0.5);}
+.claude-prompt-wrap textarea::placeholder{color:rgba(200,230,210,0.25);}
+.claude-status{font-size:9px;text-align:center;margin-top:5px;min-height:14px;}
 .claude-error{color:rgba(220,120,100,0.8);font-size:11px;line-height:1.5;}
 /* TOAST */
 .toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(12px);background:var(--dk);color:#EDF8EF;padding:11px 22px;border-radius:26px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;z-index:999;white-space:nowrap;transition:opacity .3s,transform .3s cubic-bezier(.2,.85,.3,1);box-shadow:0 8px 28px rgba(0,0,0,.4);display:flex;align-items:center;gap:8px;max-width:90vw;}
@@ -3560,36 +3566,79 @@ function renderAnalytics(container){
 /* ══ CLAUDE AI SUMMARY ══ */
 /* ══ CLAUDE AI SUMMARY ══ */
 async function renderClaudeSummary(container) {
+  // ── Build card shell ──
   const card = document.createElement("div"); card.className = "claude-card";
+
+  // Header
   const hdr = document.createElement("div"); hdr.className = "claude-card-header";
   const logo = document.createElement("div"); logo.className = "claude-card-logo"; logo.textContent = "\u2728";
   const titWrap = document.createElement("div");
   const tit = document.createElement("div"); tit.className = "claude-card-title"; tit.textContent = "Claude Analysis";
-  const sub = document.createElement("div"); sub.className = "claude-card-sub"; sub.id = "claude-sub-"+Math.random().toString(36).slice(2);
-  const subId = sub.id;
-  sub.textContent = "Loading...";
-  titWrap.append(tit,sub); hdr.append(logo,titWrap); card.append(hdr);
+  const uid = "cs-"+Date.now();
+  const sub = document.createElement("div"); sub.className = "claude-card-sub"; sub.id = uid; sub.textContent = "Loading\u2026";
+  titWrap.append(tit, sub); hdr.append(logo, titWrap); card.append(hdr);
+
+  // Body
   const body = document.createElement("div"); body.className = "claude-card-body"; card.append(body);
+
+  // Custom prompt input
+  const promptWrap = document.createElement("div");
+  promptWrap.style.cssText = "margin-top:10px;";
+  const promptLabel = document.createElement("div");
+  promptLabel.style.cssText = "font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(200,168,60,0.6);margin-bottom:5px;";
+  promptLabel.textContent = "Additional instructions for Claude (optional)";
+  const promptInput = document.createElement("textarea");
+  promptInput.placeholder = "e.g. Focus on our grocery spending. Compare to last month. Suggest specific restaurants to cut from dining.";
+  promptInput.style.cssText = "width:100%;min-height:60px;padding:8px 10px;border-radius:10px;border:1px solid rgba(200,168,60,0.25);background:rgba(255,255,255,0.05);color:rgba(220,240,225,0.85);font-family:'DM Sans',sans-serif;font-size:11px;line-height:1.5;resize:vertical;box-sizing:border-box;";
+  promptWrap.append(promptLabel, promptInput);
+  card.append(promptWrap);
+
+  // Refresh button
+  const refreshBtn = document.createElement("button"); refreshBtn.className = "claude-refresh-btn";
+  refreshBtn.innerHTML = "\u21BB Regenerate analysis via GitHub Actions";
+  card.append(refreshBtn);
+
+  // Status line
+  const statusLine = document.createElement("div");
+  statusLine.style.cssText = "font-size:9px;color:rgba(200,230,210,0.3);text-align:center;margin-top:6px;";
+  card.append(statusLine);
+
   container.prepend(card);
 
-  // Static fallback analysis (manually written by Claude based on real data)
+  const mk = mkey(cy, cm);
+  const GITHUB_REPO = "asad-ikram-mc/filzoasad-budget";
+  const WORKFLOW_ID  = "claude_analysis.yml";
+
+  // Static fallback for April 2026
   const STATIC = {
     "2026_04": `SUMMARY
-April 2026 shows a strong but nuanced financial picture for Asad & Filza. Asad spent PKR 2.1L against a PKR 2.1L budget - an impressive 100% utilisation showing disciplined spending. However Filza spent PKR 2.3L against a PKR 1.9L budget, running PKR 40,000 over. Household net income received stands at approximately PKR 11.4L PKR (Asad M&C 6L + Freelance 3.9L + Filza 1.5L), with Fix.com GBP 2,900 sitting separately in Lloyds UK untouched. Net household saving of PKR 8.3L is strong and ahead of the PKR 4L monthly expense baseline. The Grocery category under Filza SCB (PKR 1.15L spent vs PKR 76,100 budget) is the biggest overshoot at 51% over - this single category explains most of Filza's overrun.
+April 2026 was a solid month for Asad & Filza overall. Asad came in right on budget at PKR 2.1L spent, showing great discipline across petrol, dining, and shopping. The household net saving of PKR 8.3L is impressive and keeps your dreams firmly on track. One watch area: Filza ran PKR 40-50K over her monthly budget this month.
 
 CATEGORY DEEP DIVE
-Asad ABL: Petrol PKR 30K (on budget), Shopping PKR 106K (slightly over 40K budget - check receipts), Dining Out pushing toward 40K limit. Asad HBL: Daily Expense, Ammi PKR 50K, Internet PKR 14K, Phone PKR 5K - all within budget. Filza HBL: Mama PKR 50K, Daily, Misc, Phone - running PKR 4K over PKR 105K budget total. Filza SCB: Grocery PKR 115K vs PKR 76K budget is the red flag. Toiletries, Server Sub, Netflix all within budget. UK Account (Lloyds): GBP 2,900 untouched - accumulating well. Consider setting a GBP savings milestone target.
+Asad ABL: Petrol PKR 30K on budget, Shopping PKR 106K slightly over 40K limit, Dining Out approaching 40K cap - review receipts for April. Asad HBL: Daily Expense, Ammi PKR 50K, Internet PKR 14K, Phone PKR 5K all within budget - clean month. Filza HBL: Mama PKR 50K, Daily, Misc, Phone running PKR 4K over PKR 105K total budget. Filza SCB: Grocery PKR 115K vs PKR 76K budget is the standout red flag at 51% over - this single category explains most of Filza overrun. Toiletries, Server Sub, Netflix all within budget.
 
 RECOMMENDATIONS
-1. Grocery control is the #1 priority for May. PKR 115K on groceries for two people in Lahore is high - set a PKR 70K hard cap and use a running WhatsApp total when shopping. 2. From May, Asad's M&C increases to PKR 966K (+PKR 366K). Automate: on salary day, move PKR 300K to Pakistan Savings before anything else - treat it as already spent. 3. Shopping on ABL came in high. Consider a monthly 'clothing/lifestyle' budget of PKR 30K and track separately from daily shopping. 4. Filza's income received (-75K net) suggests not all income was logged as received this month - mark salary as received on payment day to keep the picture accurate. 5. Dreams check: at PKR 8.3L/month savings, Jaecoo J5 (50L) = 6 months, Europe Trip (25L) = 3 months, Baby Fund (50L) = 6 months. Stagger these goals and consider opening a dedicated savings pot for the car.
+1. Grocery is the number one priority - set a PKR 70K hard cap for May and track spend after each shop on WhatsApp. 2. From May Asad M+C rises to PKR 966K - on salary day move PKR 300K to Pakistan Savings before it touches spending accounts. 3. Shopping on ABL came in high - split clothing and lifestyle into a separate PKR 30K monthly budget tracked apart from daily shopping. 4. Filza net income shows negative because not all income was marked received - confirm salary marked on payment day for accurate picture. 5. At PKR 8.3L monthly household saving you are 6 months from Jaecoo J5 - open a dedicated savings pot labeled Car Fund to protect this goal.
 
 TIP OF THE MONTH
-The Grocery category will make or break your May budget. Before each shopping trip, write a list and set a PKR 15,000 per-trip limit. In a month with 4 shops that is PKR 60,000 total - well under budget and with PKR 10,000 spare for unexpected needs. Small habit, massive difference: you saved PKR 8.3L this April and with tighter grocery discipline in May you can hit PKR 9L+ while also enjoying that M&C raise.`
+You saved PKR 8.3L as a household this April. At this rate your Jaecoo J5 dream of PKR 50L is just 6 months away. The key habit to protect: treat savings like a fixed expense that comes out on the 1st not whatever is left at the end of the month. One tighter grocery month could push you to PKR 9L saved and shave a full month off your car timeline.`
   };
 
-  function renderSections(text, sourceLabel) {
+  function renderSections(text, sourceLabel, savedAt) {
     body.innerHTML = "";
-    document.getElementById(subId).textContent = sourceLabel;
+    document.getElementById(uid).textContent = sourceLabel;
+
+    // Timestamp
+    if (savedAt) {
+      const ts = document.createElement("div");
+      ts.style.cssText = "font-size:10px;color:rgba(200,168,60,0.55);margin-bottom:12px;display:flex;align-items:center;gap:5px;";
+      const d = new Date(savedAt);
+      ts.innerHTML = "\uD83D\uDD52 Last updated: <strong style='color:rgba(200,168,60,0.8)'>" +
+        d.toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"}) + " at " +
+        d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}) + "</strong>";
+      body.append(ts);
+    }
+
     const sections = [
       {key:"SUMMARY",            icon:"\uD83D\uDCCA", label:"Summary"},
       {key:"CATEGORY DEEP DIVE", icon:"\uD83D\uDD0D", label:"Category Deep Dive"},
@@ -3597,57 +3646,142 @@ The Grocery category will make or break your May budget. Before each shopping tr
       {key:"TIP OF THE MONTH",   icon:"\u2728",        label:"Tip of the Month"},
     ];
     sections.forEach(function(def, i) {
-      const startMatch = text.search(new RegExp(def.key + "[:\\s]*", "i"));
-      if(startMatch < 0) return;
+      const startMatch = text.search(new RegExp(def.key+"[:\\s]*","i"));
+      if (startMatch < 0) return;
       const afterHeader = text.indexOf("\n", startMatch);
-      if(afterHeader < 0) return;
+      if (afterHeader < 0) return;
       let endIdx = text.length;
       sections.slice(i+1).forEach(function(next) {
         const ni = text.search(new RegExp(next.key+"[:\\s]*","i"));
-        if(ni>afterHeader && ni<endIdx) endIdx=ni;
+        if (ni > afterHeader && ni < endIdx) endIdx = ni;
       });
-      const content = text.slice(afterHeader,endIdx).trim().replace(/^[#*\-]+\s*/gm,"").trim();
-      if(!content) return;
-      const sec=document.createElement("div"); sec.className="claude-section";
-      const stit=document.createElement("div"); stit.className="claude-section-title"; stit.textContent=def.icon+"  "+def.label;
-      const sbody=document.createElement("div"); sbody.className="claude-section-body";
-      if(def.key==="TIP OF THE MONTH"){
-        const tip=document.createElement("div"); tip.className="claude-tip"; tip.textContent=content; sbody.append(tip);
-      } else { sbody.textContent=content; }
-      sec.append(stit,sbody); body.append(sec);
+      const content = text.slice(afterHeader, endIdx).trim().replace(/^[#*\-]+\s*/gm,"").trim();
+      if (!content) return;
+      const sec = document.createElement("div"); sec.className = "claude-section";
+      const stit = document.createElement("div"); stit.className = "claude-section-title";
+      stit.textContent = def.icon+"  "+def.label;
+      const sbody = document.createElement("div"); sbody.className = "claude-section-body";
+      if (def.key === "TIP OF THE MONTH") {
+        const tip = document.createElement("div"); tip.className = "claude-tip"; tip.textContent = content; sbody.append(tip);
+      } else { sbody.textContent = content; }
+      sec.append(stit, sbody); body.append(sec);
     });
+    if (!body.children.length || body.children.length === 1) {
+      const raw = document.createElement("div"); raw.className = "claude-section-body"; raw.textContent = text; body.append(raw);
+    }
   }
 
-  const mk = mkey(cy,cm);
+  // ── Trigger GitHub Actions workflow ──
+  async function triggerWorkflow() {
+    refreshBtn.disabled = true;
+    refreshBtn.textContent = "\u23F3 Triggering GitHub Actions\u2026";
+    statusLine.textContent = "";
 
-  // Step 1: Try Firebase cache
+    const extraPrompt = promptInput.value.trim();
+    // Save extra prompt to Firebase so the workflow can read it
+    if (extraPrompt) {
+      try {
+        await set(ref(db, "af/claude_extra_prompt/"+mk), {
+          prompt: extraPrompt, by: currentUser||"unknown", ts: Date.now()
+        });
+      } catch(e) {}
+    }
+
+    // Trigger via GitHub API
+    // Token stored in Firebase - not in code
+    const tokenSnap = await get(ref(db, "af/config/gh_token"));
+    const GITHUB_TOKEN = tokenSnap.val();
+    if(!GITHUB_TOKEN){ statusLine.textContent="GitHub token not configured in Firebase."; statusLine.style.color="rgba(220,120,100,0.8)"; refreshBtn.disabled=false; refreshBtn.textContent="\u21BB Regenerate analysis"; return; }
+    try {
+      const resp = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/${WORKFLOW_ID}/dispatches`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${GITHUB_TOKEN}`,
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            ref: "main",
+            inputs: { month_override: mk }
+          })
+        }
+      );
+
+      if (resp.status === 204) {
+        refreshBtn.textContent = "\u2713 Workflow triggered!";
+        statusLine.textContent = "GitHub Actions is generating your analysis. Check back in ~30 seconds then refresh the page.";
+        statusLine.style.color = "rgba(100,210,140,0.7)";
+        // Poll Firebase for new analysis every 5 seconds for 60 seconds
+        let attempts = 0;
+        const poll = setInterval(async function() {
+          attempts++;
+          const snap = await get(ref(db, "af/claude_summary/"+mk));
+          const cached = snap.val();
+          if (cached && cached.savedBy === "github-actions" && Date.now() - cached.savedAt < 120000) {
+            clearInterval(poll);
+            renderSections(cached.text, "\uD83E\uDD16 Fresh from Claude \u2014 " + (MONTHS[cm]||"")+" "+cy, cached.savedAt);
+            refreshBtn.disabled = false;
+            refreshBtn.textContent = "\u21BB Regenerate analysis";
+            statusLine.textContent = "";
+          }
+          if (attempts >= 12) {
+            clearInterval(poll);
+            statusLine.textContent = "Taking longer than expected. Refresh the page in a minute.";
+            refreshBtn.disabled = false;
+            refreshBtn.textContent = "\u21BB Regenerate analysis";
+          }
+        }, 5000);
+      } else {
+        const err = await resp.text();
+        statusLine.textContent = "Trigger failed ("+resp.status+"). Check GitHub token.";
+        statusLine.style.color = "rgba(220,120,100,0.8)";
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = "\u21BB Regenerate analysis";
+      }
+    } catch(e) {
+      statusLine.textContent = "Network error: "+e.message;
+      statusLine.style.color = "rgba(220,120,100,0.8)";
+      refreshBtn.disabled = false;
+      refreshBtn.textContent = "\u21BB Regenerate analysis";
+    }
+  }
+
+  refreshBtn.addEventListener("click", triggerWorkflow);
+
+  // ── Load analysis ──
+  body.innerHTML = "<div class=\"claude-loading\"><div class=\"claude-spinner\"></div><span>Loading analysis\u2026</span></div>";
+
   try {
-    const snap = await get(ref(db,"af/claude_summary/"+mk));
+    const snap = await get(ref(db, "af/claude_summary/"+mk));
     const cached = snap.val();
-    if(cached && cached.text) {
-      renderSections(cached.text, "\uD83D\uDCBE From Firebase cache \u2014 "+(MONTHS[cm]||"")+" "+cy);
+    if (cached && cached.text) {
+      const who = cached.savedBy === "github-actions" ? "\uD83E\uDD16 GitHub Actions" :
+                  cached.savedBy === "static-seed"    ? "\uD83D\uDCCB Manual by Claude" : "\uD83D\uDCBE Cached";
+      renderSections(cached.text, who+" \u2014 "+(MONTHS[cm]||"")+" "+cy, cached.savedAt);
+      refreshBtn.textContent = "\u21BB Regenerate analysis";
       return;
     }
   } catch(e) {}
 
-  // Step 2: Try static fallback
-  if(STATIC[mk]) {
-    renderSections(STATIC[mk], "\uD83D\uDCCB Manual analysis by Claude \u2014 "+(MONTHS[cm]||"")+" "+cy);
-    // Save to Firebase for next time
-    try {
-      await set(ref(db,"af/claude_summary/"+mk), {text:STATIC[mk],month:mk,savedAt:Date.now(),savedBy:"static-seed"});
-    } catch(e) {}
+  // Fallback to static
+  if (STATIC[mk]) {
+    renderSections(STATIC[mk], "\uD83D\uDCCB Manual analysis \u2014 "+(MONTHS[cm]||"")+" "+cy, null);
+    try { await set(ref(db,"af/claude_summary/"+mk),{text:STATIC[mk],month:mk,savedAt:Date.now(),savedBy:"static-seed"}); } catch(e){}
+    refreshBtn.textContent = "\u21BB Regenerate with latest data";
     return;
   }
 
-  // Step 3: No data available
+  // No data
   body.innerHTML = "";
-  document.getElementById(subId).textContent = "No analysis available yet";
-  const msg = document.createElement("div"); msg.className="claude-section-body";
-  msg.style.opacity="0.6";
-  msg.textContent = "Analysis for "+(MONTHS[cm]||"")+" "+cy+" will appear here once generated. Check back after month end.";
+  document.getElementById(uid).textContent = "No analysis yet";
+  const msg = document.createElement("div"); msg.className="claude-section-body"; msg.style.opacity="0.6";
+  msg.textContent = "Click Regenerate to generate analysis for "+(MONTHS[cm]||"")+" "+cy+".";
   body.append(msg);
+  refreshBtn.textContent = "\u21BB Generate analysis";
 }
+
 
 function renderAll() {
   if(!currentUser) return;
