@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0A1A10"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/><!-- v8.0 -->
+<meta http-equiv="Expires" content="0"/><!-- v8.3 -->
 <!-- v3.1 -->
 <title>Asad &amp; Filza</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -3610,28 +3610,36 @@ function renderAnalytics(container){
   // ── F. Saved This Month vs Total Savings Doughnut ──
   get(ref(db,"af/savings")).then(function(snap){
     const savData3=snap.val()||{};
-    const pakSav=(savData3.pak_sav&&savData3.pak_sav.amount)||0;
-    const lloydsGBP=(savData3.lloyds&&savData3.lloyds.amount)||0;
-    const lloydsEst=lloydsGBP*280; // approx PKR equivalent
+    const txns3=Object.values(savData3.transactions||{}).sort((a,b)=>(a.ts||0)-(b.ts||0));
+    const balances={sav_asad:0,sav_filza:0,sav_lloyds:0};
+    txns3.forEach(function(t){
+      if(t.accountId&&balances[t.accountId]!==undefined){
+        balances[t.accountId]+=(t.type==="withdraw"?-1:1)*Math.abs(t.amt||0);
+      }
+    });
+    const lloydsGBP=balances.sav_lloyds||0;
+    const lloydsEst=lloydsGBP*280;
 
+    // Card
     const totCard2=document.createElement("div"); totCard2.className="chart-card";
-    const totTitle2=document.createElement("div"); totTitle2.className="chart-title"; totTitle2.textContent="Saved This Month vs Total Wealth";
-    const totSub2=document.createElement("div"); totSub2.className="chart-sub"; totSub2.textContent="How this month's saving fits into your total accumulated wealth";
-    const totWrap2=document.createElement("div"); totWrap2.className="chart-wrap"; totWrap2.style.height="220px";
+    const totTitle2=document.createElement("div"); totTitle2.className="chart-title"; totTitle2.textContent="Savings Breakdown";
+    const totSub2=document.createElement("div"); totSub2.className="chart-sub"; totSub2.textContent="How this month's saving contributes to your total accumulated savings";
+    const totWrap2=document.createElement("div"); totWrap2.className="chart-wrap"; totWrap2.style.height="230px";
     const totCanvas2=document.createElement("canvas"); totCanvas2.id="chart-tot";
     totWrap2.append(totCanvas2); totCard2.append(totTitle2,totSub2,totWrap2);
 
     // Stat chips
     const chips2=document.createElement("div");
-    chips2.style.cssText="display:flex;gap:8px;flex-wrap:wrap;padding:10px 0 4px;";
-    [
-      {label:"Saved This Month", val:"PKR "+Math.round(savedThisMonth2).toLocaleString()},
-      {label:"Pakistan Savings", val:"PKR "+Math.round(pakSav).toLocaleString()},
-      {label:"UK Lloyds",        val:"\u00A3"+Math.round(lloydsGBP).toLocaleString()},
-      {label:"Total (PKR est.)",  val:"PKR "+Math.round(pakSav+lloydsEst+savedThisMonth2).toLocaleString()},
-    ].forEach(function(item){
+    chips2.style.cssText="display:flex;gap:6px;flex-wrap:wrap;padding:10px 0 4px;";
+    var chipData=[
+      {label:"Saved This Month", val:"PKR "+Math.round(savedThisMonth2).toLocaleString(),  col:"rgba(80,180,120,0.85)"},
+      {label:"Asad HBL Savings", val:"PKR "+Math.round(balances.sav_asad||0).toLocaleString(), col:"rgba(42,84,56,0.85)"},
+      {label:"Filza HBL Savings",val:"PKR "+Math.round(balances.sav_filza||0).toLocaleString(),col:"rgba(168,84,140,0.85)"},
+      {label:"UK Lloyds",        val:"\u00A3"+Math.round(lloydsGBP).toLocaleString(),        col:"rgba(70,120,180,0.85)"},
+    ];
+    chipData.forEach(function(item){
       const chip=document.createElement("div");
-      chip.style.cssText="flex:1;min-width:80px;text-align:center;padding:8px 6px;border-radius:10px;background:var(--panel);";
+      chip.style.cssText="flex:1;min-width:80px;text-align:center;padding:8px 6px;border-radius:10px;background:var(--panel);border-left:3px solid "+item.col+";";
       chip.innerHTML="<div style='font-size:9px;color:var(--sf);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px'>"+item.label+"</div>"
         +"<div style='font-family:Cormorant Garamond,serif;font-size:14px;font-weight:600;color:var(--dk)'>"+item.val+"</div>";
       chips2.append(chip);
@@ -3642,16 +3650,16 @@ function renderAnalytics(container){
     analyticsCharts["tot"]=new Chart(totCanvas2,{
       type:"doughnut",
       data:{
-        labels:["Saved This Month","Pakistan Savings","UK Lloyds (PKR est.)"],
+        labels:["Saved This Month","Asad HBL Savings","Filza HBL Savings","UK Lloyds (PKR est.)"],
         datasets:[{
-          data:[savedThisMonth2, pakSav, lloydsEst],
-          backgroundColor:["rgba(80,180,120,0.85)","rgba(42,84,56,0.85)","rgba(70,120,180,0.85)"],
-          borderWidth:2, borderColor:"#FDFFFE"
+          data:[savedThisMonth2,balances.sav_asad||0,balances.sav_filza||0,lloydsEst],
+          backgroundColor:["rgba(80,180,120,0.85)","rgba(42,84,56,0.85)","rgba(168,84,140,0.85)","rgba(70,120,180,0.85)"],
+          borderWidth:2,borderColor:"#FDFFFE"
         }]
       },
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{
-          legend:{position:"bottom",labels:{font:{size:10},padding:8,boxWidth:10}},
+          legend:{position:"bottom",labels:{font:{size:10},padding:6,boxWidth:10}},
           tooltip:{callbacks:{label:function(ctx){
             var total=ctx.dataset.data.reduce(function(a,b){return a+b;},0)||1;
             return ctx.label+": "+fmt2(ctx.raw)+" ("+Math.round(ctx.raw/total*100)+"%)";
@@ -3659,7 +3667,46 @@ function renderAnalytics(container){
         }
       }
     });
+
+    // Monthly savings history
+    var monthHist={};
+    txns3.forEach(function(t){
+      if(!t.ts) return;
+      var d=new Date(t.ts);
+      var mk2=d.getFullYear()+"_"+("0"+(d.getMonth()+1)).slice(-2);
+      monthHist[mk2]=(monthHist[mk2]||0)+(t.type==="withdraw"?-1:1)*Math.abs(t.amt||0);
+    });
+    var curMk2=mkey(cy,cm);
+    monthHist[curMk2]=(monthHist[curMk2]||0)+savedThisMonth2;
+    var histKeys=Object.keys(monthHist).sort();
+
+    if(histKeys.length>=1){
+      const histCard=document.createElement("div"); histCard.className="chart-card";
+      const histTitle=document.createElement("div"); histTitle.className="chart-title"; histTitle.textContent="Monthly Savings History";
+      const histSub=document.createElement("div"); histSub.className="chart-sub"; histSub.textContent="Savings deposited per month";
+      const histWrap=document.createElement("div"); histWrap.className="chart-wrap"; histWrap.style.height="180px";
+      const histCanvas=document.createElement("canvas"); histCanvas.id="chart-hist";
+      histWrap.append(histCanvas); histCard.append(histTitle,histSub,histWrap); container.append(histCard);
+      var mons2=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      analyticsCharts["hist"]=new Chart(histCanvas,{
+        type:"bar",
+        data:{
+          labels:histKeys.map(function(k){var p=k.split("_");return mons2[parseInt(p[1])-1]+" "+p[0];}),
+          datasets:[{
+            label:"Saved",
+            data:histKeys.map(function(k){return monthHist[k];}),
+            backgroundColor:histKeys.map(function(k){return monthHist[k]>=0?"rgba(42,84,56,0.8)":"rgba(168,56,88,0.8)";}),
+            borderRadius:6
+          }]
+        },
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return "Saved: "+fmt2(ctx.raw);}}}},
+          scales:{y:{ticks:{callback:function(v){return sh(v);}},grid:{color:"rgba(0,0,0,.05)"}}}
+        }
+      });
+    }
   }).catch(function(){});
+
 }
 
 
