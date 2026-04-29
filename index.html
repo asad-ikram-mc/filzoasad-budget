@@ -3574,7 +3574,6 @@ function renderAnalytics(container){
   if(insights.length===0){const em=document.createElement("div");em.style.cssText="font-size:12px;color:var(--sf);font-style:italic;";em.textContent="Log expenses to see insights";insCard.append(em);}
   insights.forEach(ins=>{const ic=document.createElement("div");ic.className="insight-card"+(ins.warn?" warn":"");const ico=document.createElement("div");ico.className="insight-ico";ico.textContent=ins.ico;const txt=document.createElement("div");txt.className="insight-txt";txt.innerHTML=ins.msg;ic.append(ico,txt);insCard.append(ic);});
   container.append(insCard);
-}
   // ── E. Savings Health Graph ──
   const savCard2=document.createElement("div"); savCard2.className="chart-card";
   const savTitle2=document.createElement("div"); savTitle2.className="chart-title"; savTitle2.textContent="Savings Health";
@@ -3660,6 +3659,7 @@ function renderAnalytics(container){
       }
     });
   }).catch(function(){});
+}
 
 
 /* ══ CLAUDE AI SUMMARY ══ */
