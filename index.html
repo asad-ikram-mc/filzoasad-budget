@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="A&amp;F Finance"/>
-<!-- v8.7 --><meta name="theme-color" content="#0A1A10"/>
+<!-- v8.8 --><meta name="theme-color" content="#0A1A10"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/><!-- v8.3-202604290957 -->
@@ -354,9 +354,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--dk);paddi
 .mbn{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.13);border-radius:50%;width:30px;height:30px;cursor:pointer;color:#EDF8EF;font-size:18px;display:flex;align-items:center;justify-content:center;}
 .mbn:active{transform:scale(.88);}
 .month-lbl{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:500;color:#EDF8EF;min-width:130px;text-align:center;}
-.tabs{display:flex;border-top:1px solid rgba(255,255,255,.07);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.tabs{display:flex;flex-wrap:nowrap;border-top:1px solid rgba(255,255,255,.07);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:1px;}
 .tabs::-webkit-scrollbar{display:none;}
-.tab{flex:1;padding:9px 2px 8px;text-align:center;font-size:10.5px;font-weight:600;color:rgba(170,210,180,.4);cursor:pointer;letter-spacing:.2px;border-bottom:2px solid transparent;transition:all .2s;user-select:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex:0 0 auto;white-space:nowrap;padding:9px 10px 8px;text-align:center;font-size:10.5px;font-weight:600;color:rgba(170,210,180,.4);cursor:pointer;letter-spacing:.2px;border-bottom:2px solid transparent;transition:all .2s;user-select:none;}
 .tab.on{color:#EDF8EF;border-bottom-color:var(--goldb);}
 
 /* VIEWS */
