@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="A&amp;F Finance"/>
-<!-- v8.9c --><meta name="theme-color" content="#0A1A10"/>
+<!-- v9.0 --><meta name="theme-color" content="#0A1A10"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/><!-- v8.3-202604290957 -->
@@ -1063,7 +1063,7 @@ const dbp  = (...p) => "af/"+mkey(cy,cm)+"/"+p.join("/");
 const INCOME = [
   {id:"filza_sal",who:"filza",name:"Filza \u2014 Salary",    src:"Monthly",             exp:150000,cur:"PKR",note:"Regular monthly salary"},
   {id:"asad_mc",  who:"asad", name:"Asad \u2014 M&C Saatchi",src:"M&C Saatchi Fluency", exp:(()=>{const d=new Date(cy,cm);return(d>=new Date(2026,4))?966000:600000;})(),cur:"PKR",note:"PKR 600K (Apr) / PKR 966K (May onwards)"},
-  {id:"asad_free",who:"asad", name:"Asad \u2014 Freelance",  src:"Various clients",      exp:515000,cur:"PKR",note:"Net after Muteeb (-185K)"},
+  {id:"asad_free",who:"asad", name:"Asad \u2014 Freelance",  src:"Various clients",      exp:(()=>{const d=new Date(cy,cm);return(d>=new Date(2026,4))?380000:515000;})(),cur:"PKR",note:"PKR 515K (Apr) / PKR 380K (May onwards)"},
   {id:"asad_fix", who:"asad", name:"Asad \u2014 Fix.com",    src:"Fix.com UK (Lloyds)",  exp:2900,  cur:"GBP",note:"Stays in Lloyds UK \u2014 NOT in Pakistan pool"},
 ];
 

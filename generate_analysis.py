@@ -62,7 +62,7 @@ EXPENSES = [
 INCOME_SOURCES = [
     {"id":"filza_sal", "name":"Filza Salary",  "who":"filza", "exp":150000},
     {"id":"asad_mc",   "name":"M&C Saatchi",   "who":"asad",  "exp":600000 if mon<=4 else 966000},
-    {"id":"asad_free", "name":"Freelance CXG", "who":"asad",  "exp":700000},
+    {"id":"asad_free", "name":"Freelance CXG", "who":"asad",  "exp":515000 if mon<=4 else 380000},
 ]
 
 def total_spent(cat_id):
